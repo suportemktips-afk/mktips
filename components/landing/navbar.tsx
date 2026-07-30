@@ -45,12 +45,12 @@ export function Navbar({ onStartFree: _onStartFree }: { onStartFree: () => void 
           <span className="text-lg font-black tracking-tight text-[var(--mk-green)]">TIPS</span>
         </a>
 
-        <div className="hidden items-center gap-0.5 md:flex">
+        <div className="hidden items-center gap-1 md:flex">
           {links.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="rounded-lg px-3 py-2 text-[13px] font-medium text-white/80 transition-colors hover:text-white"
+              className="rounded-lg px-3 py-2 text-[13px] font-medium text-[#a5afb7] transition-colors hover:text-white"
             >
               {link.label}
             </a>
@@ -60,7 +60,7 @@ export function Navbar({ onStartFree: _onStartFree }: { onStartFree: () => void 
         <div className="hidden items-center md:flex">
           <a
             href="/login"
-            className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/25 bg-transparent px-5 text-sm font-semibold text-white transition-colors hover:border-white/45 hover:bg-white/5"
+            className="inline-flex h-10 items-center justify-center rounded-full border border-white/35 bg-transparent px-5 text-sm font-semibold text-white transition-colors hover:border-white/55 hover:bg-white/5"
           >
             Entrar e começar agora
           </a>
@@ -97,7 +97,7 @@ export function Navbar({ onStartFree: _onStartFree }: { onStartFree: () => void 
             <div className="flex flex-col gap-2 pt-3">
               <a
                 href="/login"
-                className="inline-flex h-11 w-full items-center justify-center rounded-[12px] border border-white/25 text-sm font-semibold text-white"
+                className="inline-flex h-11 w-full items-center justify-center rounded-full border border-white/30 text-sm font-semibold text-white"
               >
                 Entrar e começar agora
               </a>

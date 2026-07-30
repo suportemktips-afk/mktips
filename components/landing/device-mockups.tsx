@@ -1,137 +1,210 @@
 'use client'
 
-/** Device stack matching hero reference: laptop + tablet + phone with ROI/Yield UI. */
+/** Hero device stack: laptop (back) + tablet odds (right) + phone (left), soft green glow. */
 export function DeviceMockups() {
+  const bookies = [
+    { name: 'bet365', color: '#00B140' },
+    { name: 'Betano', color: '#FF6A00' },
+    { name: 'KTO', color: '#E10600' },
+    { name: '1xBet', color: '#1B5E20' },
+    { name: 'Sportingbet', color: '#C8102E' },
+  ]
+
+  const oddsRows = [
+    ['1.92', '1.88', '1.85', '1.90', '1.87'],
+    ['2.10', '2.05', '2.15', '2.08', '2.02'],
+    ['1.74', '1.78', '1.70', '1.76', '1.72'],
+    ['3.40', '3.25', '3.50', '3.30', '3.20'],
+  ]
+
+  const recent = [
+    { match: 'Flamengo x Palmeiras', status: 'Green', ok: true },
+    { match: 'Real Madrid x Barça', status: 'Red', ok: false },
+    { match: 'Inter x Milan', status: 'Green', ok: true },
+    { match: 'City x Arsenal', status: 'Green', ok: true },
+  ]
+
   return (
-    <div className="relative mx-auto h-[360px] w-full max-w-[540px] sm:h-[420px] lg:h-[460px]">
+    <div className="relative mx-auto h-[380px] w-full max-w-[560px] sm:h-[440px] lg:h-[480px] lg:max-w-none lg:translate-x-6 xl:translate-x-10">
+      {/* Soft radial green glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[42%] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl sm:h-[380px] sm:w-[380px]"
+        className="pointer-events-none absolute left-[48%] top-[45%] h-[320px] w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl sm:h-[400px] sm:w-[400px]"
         style={{
           background:
-            'radial-gradient(circle, rgba(112,224,0,0.28) 0%, rgba(112,224,0,0.08) 42%, transparent 70%)',
+            'radial-gradient(circle, rgba(112,224,0,0.32) 0%, rgba(112,224,0,0.10) 40%, transparent 70%)',
         }}
       />
 
-      {/* Laptop */}
-      <div className="absolute left-1/2 top-0 z-10 w-[90%] max-w-[440px] -translate-x-1/2">
-        <div className="overflow-hidden rounded-[12px] border border-white/10 bg-[#081219] shadow-[0_28px_80px_rgba(0,0,0,0.65)]">
-          <div className="flex items-center gap-1.5 border-b border-white/5 bg-[#050d12] px-3 py-2">
-            <span className="h-2 w-2 rounded-full bg-[#ff5f57]" />
-            <span className="h-2 w-2 rounded-full bg-[#febc2e]" />
-            <span className="h-2 w-2 rounded-full bg-[#28c840]" />
-            <span className="ml-2 font-mono text-[9px] text-[#a5afb7]">app.mktips.com/dashboard</span>
+      {/* Laptop — center / back */}
+      <div className="absolute left-[4%] top-2 z-10 w-[78%] max-w-[420px] sm:left-[6%] sm:top-0 lg:left-0">
+        <div className="overflow-hidden rounded-[12px] border border-white/12 bg-[#071018] shadow-[0_32px_90px_rgba(0,0,0,0.7)]">
+          <div className="flex items-center justify-between border-b border-white/5 bg-[#050d12] px-3 py-2">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-[#ff5f57]" />
+              <span className="h-2 w-2 rounded-full bg-[#febc2e]" />
+              <span className="h-2 w-2 rounded-full bg-[#28c840]" />
+            </div>
+            <p className="text-[9px] font-bold tracking-wide text-white/90">
+              <span className="text-white">MK</span>
+              <span className="text-[var(--mk-green)]"> TIPS</span>
+              <span className="ml-1 font-medium text-[#a5afb7]">Dashboard</span>
+            </p>
+            <span className="w-10" />
           </div>
+
           <div className="space-y-2 bg-[#03090e] p-2.5 sm:p-3">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-[10px] border border-white/5 bg-[#081219] px-3 py-2">
-                <p className="text-[8px] uppercase tracking-wider text-[#a5afb7]">ROI</p>
-                <p className="font-mono text-sm font-bold text-white sm:text-base">12,45%</p>
-                <p className="text-[8px] text-[var(--mk-green)]">+2,1% semana</p>
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+              <div className="rounded-[10px] border border-white/6 bg-[#081219] px-2 py-1.5 sm:px-2.5">
+                <p className="text-[7px] uppercase tracking-wider text-[#a5afb7]">ROI</p>
+                <p className="font-mono text-[11px] font-bold text-white sm:text-sm">12,45%</p>
+                <p className="text-[7px] font-semibold text-[var(--mk-green)]">+23% semana</p>
               </div>
-              <div className="rounded-[10px] border border-white/5 bg-[#081219] px-3 py-2">
-                <p className="text-[8px] uppercase tracking-wider text-[#a5afb7]">Yield</p>
-                <p className="font-mono text-sm font-bold text-white sm:text-base">8,21%</p>
-                <p className="text-[8px] text-[var(--mk-green)]">+1,4% semana</p>
+              <div className="rounded-[10px] border border-white/6 bg-[#081219] px-2 py-1.5 sm:px-2.5">
+                <p className="text-[7px] uppercase tracking-wider text-[#a5afb7]">Yield</p>
+                <p className="font-mono text-[11px] font-bold text-white sm:text-sm">8,21%</p>
+                <p className="text-[7px] font-semibold text-[var(--mk-green)]">+14% semana</p>
+              </div>
+              <div className="rounded-[10px] border border-white/6 bg-[#081219] px-2 py-1.5 sm:px-2.5">
+                <p className="text-[7px] uppercase tracking-wider text-[#a5afb7]">Banca</p>
+                <p className="font-mono text-[10px] font-bold text-white sm:text-[12px]">
+                  R$ 28.560
+                </p>
+                <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full w-[72%] rounded-full bg-[var(--mk-green)]" />
+                </div>
               </div>
             </div>
-            <div className="rounded-[10px] border border-white/5 bg-[#081219] p-2">
-              <p className="mb-1 text-[8px] font-semibold text-[#a5afb7]">Desempenho</p>
-              <svg viewBox="0 0 260 70" className="h-14 w-full sm:h-[58px]" aria-hidden>
+
+            <div className="rounded-[10px] border border-white/6 bg-[#081219] p-2">
+              <p className="mb-1 text-[8px] font-semibold text-white">Desempenho</p>
+              <svg viewBox="0 0 280 72" className="h-12 w-full sm:h-14" aria-hidden>
                 <defs>
-                  <linearGradient id="heroChartFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#70e000" stopOpacity="0.4" />
+                  <linearGradient id="heroDashFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#70e000" stopOpacity="0.42" />
                     <stop offset="100%" stopColor="#70e000" stopOpacity="0" />
                   </linearGradient>
                 </defs>
                 <path
-                  d="M0 55 C35 50, 50 38, 75 40 C105 43, 120 22, 150 26 C180 30, 200 14, 230 16 C245 17, 255 12, 260 10 L260 70 L0 70 Z"
-                  fill="url(#heroChartFill)"
+                  d="M0 58 C30 52, 48 40, 70 42 C98 45, 118 24, 148 28 C178 32, 200 16, 230 18 C250 20, 265 12, 280 10 L280 72 L0 72 Z"
+                  fill="url(#heroDashFill)"
                 />
                 <path
-                  d="M0 55 C35 50, 50 38, 75 40 C105 43, 120 22, 150 26 C180 30, 200 14, 230 16 C245 17, 255 12, 260 10"
+                  d="M0 58 C30 52, 48 40, 70 42 C98 45, 118 24, 148 28 C178 32, 200 16, 230 18 C250 20, 265 12, 280 10"
                   fill="none"
                   stroke="#70e000"
-                  strokeWidth="2.2"
+                  strokeWidth="2.4"
                   strokeLinecap="round"
                 />
               </svg>
             </div>
-            <div className="hidden gap-2 sm:grid sm:grid-cols-2">
-              <div className="rounded-lg border border-white/5 bg-[#061017] px-2 py-1.5">
-                <p className="text-[8px] text-[#a5afb7]">Resultados recentes</p>
-                <div className="mt-1 flex items-center justify-between text-[9px]">
-                  <span className="text-white">Flamengo x Palmeiras</span>
-                  <span className="font-semibold text-[var(--mk-green)]">Green</span>
-                </div>
-              </div>
-              <div className="rounded-lg border border-white/5 bg-[#061017] px-2 py-1.5">
-                <p className="text-[8px] text-[#a5afb7]">Comparador de odds</p>
-                <div className="mt-1 flex items-center justify-between text-[9px]">
-                  <span className="text-white">Melhor: 1.92</span>
-                  <span className="rounded bg-[var(--mk-green)]/15 px-1.5 py-0.5 font-bold text-[var(--mk-green)]">
-                    Ver
-                  </span>
-                </div>
+
+            <div className="rounded-[10px] border border-white/6 bg-[#081219] px-2 py-1.5">
+              <p className="mb-1 text-[8px] font-semibold text-[#a5afb7]">Resultados recentes</p>
+              <div className="space-y-1">
+                {recent.map((row) => (
+                  <div
+                    key={row.match}
+                    className="flex items-center justify-between gap-2 border-t border-white/5 pt-1 first:border-0 first:pt-0"
+                  >
+                    <span className="truncate text-[8px] text-white/90 sm:text-[9px]">
+                      {row.match}
+                    </span>
+                    <span
+                      className={`shrink-0 text-[8px] font-bold sm:text-[9px] ${
+                        row.ok ? 'text-[var(--mk-green)]' : 'text-[#ff3b30]'
+                      }`}
+                    >
+                      {row.status}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
-        <div className="mx-auto h-2 w-[70%] rounded-b-md bg-[#0a1218]" />
-        <div className="mx-auto h-1 w-[80%] rounded-b-sm bg-[#121a22]" />
+        <div className="mx-auto h-2.5 w-[68%] rounded-b-md bg-[#0a1218]" />
+        <div className="mx-auto h-1 w-[78%] rounded-b-sm bg-[#141c24]" />
       </div>
 
-      {/* Tablet */}
-      <div className="absolute bottom-8 left-0 z-20 hidden w-[138px] -rotate-6 overflow-hidden rounded-[14px] border border-white/10 bg-[#081219] shadow-2xl sm:block">
-        <div className="border-b border-white/5 bg-[#050d12] px-2 py-1.5 text-center font-mono text-[7px] text-[#a5afb7]">
-          Tips do dia
-        </div>
-        <div className="space-y-1.5 bg-[#03090e] p-2">
-          {[
-            { t: 'Over 2.5', o: '1.85' },
-            { t: 'BTTS', o: '2.10' },
-            { t: 'AH -0.5', o: '1.74' },
-          ].map((tip) => (
-            <div key={tip.t} className="rounded-lg border border-white/5 bg-[#061017] px-2 py-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[8px] font-semibold text-white">{tip.t}</span>
-                <span className="font-mono text-[8px] font-bold text-[var(--mk-green)]">{tip.o}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Phone */}
-      <div className="absolute -right-1 bottom-0 z-30 w-[100px] rotate-6 overflow-hidden rounded-[18px] border border-white/10 bg-[#050d12] p-1.5 shadow-2xl sm:right-1 sm:w-[112px]">
-        <div className="mx-auto mb-1.5 h-1.5 w-10 rounded-full bg-white/15" />
-        <div className="overflow-hidden rounded-[14px] bg-[#03090e]">
+      {/* Smartphone — left / foreground */}
+      <div className="absolute bottom-2 left-0 z-30 w-[108px] -rotate-6 overflow-hidden rounded-[22px] border border-white/15 bg-[#050d12] p-1.5 shadow-2xl sm:bottom-4 sm:w-[122px]">
+        <div className="mx-auto mb-1.5 h-1.5 w-10 rounded-full bg-white/20" />
+        <div className="overflow-hidden rounded-[16px] bg-[#03090e]">
           <div className="border-b border-white/5 px-2 py-1.5">
             <p className="text-[8px] font-bold text-white">Dashboard</p>
           </div>
-          <div className="space-y-1.5 p-2">
-            <div className="grid grid-cols-2 gap-1">
-              <div className="rounded-md border border-white/5 bg-[#081219] px-1 py-1 text-center">
-                <p className="text-[6px] text-[#a5afb7]">ROI</p>
-                <p className="font-mono text-[9px] font-bold text-white">12,45%</p>
-              </div>
-              <div className="rounded-md border border-white/5 bg-[#081219] px-1 py-1 text-center">
-                <p className="text-[6px] text-[#a5afb7]">Yield</p>
-                <p className="font-mono text-[9px] font-bold text-white">8,21%</p>
-              </div>
+          <div className="space-y-1.5 p-1.5">
+            <div className="rounded-lg border border-white/8 bg-[#081219] p-1.5">
+              <p className="text-[7px] text-[#a5afb7]">ROI</p>
+              <p className="font-mono text-[13px] font-black text-white">12,45%</p>
+              <svg viewBox="0 0 80 22" className="mt-1 h-5 w-full" aria-hidden>
+                <path
+                  d="M0 16 C14 14, 22 8, 36 10 C52 12, 62 4, 80 3"
+                  fill="none"
+                  stroke="#70e000"
+                  strokeWidth="1.6"
+                />
+              </svg>
             </div>
-            <svg viewBox="0 0 80 32" className="h-8 w-full" aria-hidden>
-              <path
-                d="M0 26 C16 22, 24 14, 40 16 C56 18, 64 8, 80 6 L80 32 L0 32 Z"
-                fill="rgba(112,224,0,0.2)"
-              />
-              <path
-                d="M0 26 C16 22, 24 14, 40 16 C56 18, 64 8, 80 6"
-                fill="none"
-                stroke="#83f52c"
-                strokeWidth="1.5"
-              />
-            </svg>
+            <div className="rounded-lg border border-white/8 bg-[#081219] p-1.5">
+              <p className="text-[7px] text-[#a5afb7]">Yield</p>
+              <p className="font-mono text-[13px] font-black text-white">8,21%</p>
+              <svg viewBox="0 0 80 22" className="mt-1 h-5 w-full" aria-hidden>
+                <path
+                  d="M0 14 C18 15, 28 9, 44 10 C58 11, 68 5, 80 4"
+                  fill="none"
+                  stroke="#83f52c"
+                  strokeWidth="1.6"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tablet — right / foreground (odds comparator) */}
+      <div className="absolute -right-2 bottom-0 z-20 w-[168px] rotate-[7deg] overflow-hidden rounded-[16px] border border-white/12 bg-[#071018] shadow-2xl sm:-right-4 sm:bottom-2 sm:w-[196px] lg:-right-8 xl:-right-12">
+        <div className="border-b border-white/5 bg-[#050d12] px-2.5 py-2">
+          <p className="text-[9px] font-bold text-white">Comparador de odds</p>
+        </div>
+        <div className="bg-[#03090e] p-2">
+          <div className="mb-1.5 grid grid-cols-5 gap-0.5">
+            {bookies.map((b) => (
+              <div
+                key={b.name}
+                className="truncate rounded px-0.5 py-1 text-center text-[5px] font-black leading-tight text-white sm:text-[6px]"
+                style={{ background: `${b.color}33`, color: b.color }}
+                title={b.name}
+              >
+                {b.name === 'Sportingbet' ? 'SB' : b.name.slice(0, 5)}
+              </div>
+            ))}
+          </div>
+          <div className="space-y-1">
+            {oddsRows.map((row, ri) => (
+              <div key={ri} className="grid grid-cols-5 gap-0.5">
+                {row.map((odd, ci) => {
+                  const isBest = Number(odd) === Math.max(...row.map((v) => Number(v)))
+                  return (
+                    <div
+                      key={`${ri}-${ci}`}
+                      className={`rounded px-0.5 py-1 text-center font-mono text-[7px] font-bold sm:text-[8px] ${
+                        isBest
+                          ? 'bg-[var(--mk-green)] text-[#02070b]'
+                          : 'bg-[#0b1520] text-white/80'
+                      }`}
+                    >
+                      {odd}
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 flex items-center justify-between rounded-md border border-white/8 bg-[#081219] px-2 py-1.5">
+            <span className="text-[7px] text-[#a5afb7]">Melhor odd</span>
+            <span className="font-mono text-[9px] font-black text-[var(--mk-green)]">3.50</span>
           </div>
         </div>
       </div>
@@ -165,12 +238,12 @@ export function PhoneMockup({ className = '' }: { className?: string }) {
             <div className="rounded-xl border border-white/5 bg-[#081219] p-3">
               <p className="text-[10px] text-[#a5afb7]">ROI</p>
               <p className="font-mono text-lg font-black text-white">12,45%</p>
-              <p className="text-[10px] text-[var(--mk-green)]">↑ +2,1%</p>
+              <p className="text-[10px] text-[var(--mk-green)]">↑ +23%</p>
             </div>
             <div className="rounded-xl border border-white/5 bg-[#081219] p-3">
               <p className="text-[10px] text-[#a5afb7]">Yield</p>
               <p className="font-mono text-lg font-black text-white">8,21%</p>
-              <p className="text-[10px] text-[var(--mk-green)]">↑ +1,4%</p>
+              <p className="text-[10px] text-[var(--mk-green)]">↑ +14%</p>
             </div>
           </div>
           <div className="rounded-xl border border-white/5 bg-[#081219] p-3">
