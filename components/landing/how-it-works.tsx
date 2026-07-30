@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import {
   UserPlus,
   LogIn,
@@ -45,36 +44,54 @@ const stepsList = [
 
 export function HowItWorks() {
   return (
-    <section id="como-funciona" className="relative overflow-hidden border-b border-zinc-900/40 bg-black py-20 sm:py-28">
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section
+      id="como-funciona"
+      className="relative overflow-hidden border-b border-white/5 bg-[var(--mk-bg)] py-20 sm:py-28"
+    >
+      <div className="relative mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <h2 className="text-balance text-3xl font-black tracking-tight text-white sm:text-4xl">
+          <h2 className="text-balance text-3xl font-black tracking-tight text-[var(--mk-text)] sm:text-4xl">
             Do cadastro ao controle da banca
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-zinc-400 sm:text-base">
+          <p className="mt-3 text-sm leading-relaxed text-[var(--mk-text-secondary)] sm:text-base">
             Um fluxo simples para organizar sua rotina no mercado esportivo.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="relative grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Dotted connectors (desktop) */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-8 top-[72px] hidden lg:block"
+          >
+            <div className="mx-auto grid max-w-5xl grid-cols-3 gap-5">
+              <div className="relative col-span-3 h-0">
+                <div className="absolute left-[16%] right-[16%] top-0 border-t border-dashed border-[var(--mk-green)]/35" />
+                <div className="absolute left-[16%] top-[148px] right-[50%] border-t border-dashed border-[var(--mk-green)]/25" />
+              </div>
+            </div>
+          </div>
+
           {stepsList.map((step, idx) => {
             const Icon = step.icon
             return (
               <div
                 key={step.title}
-                className="group relative flex flex-col gap-4 rounded-2xl border border-zinc-900 bg-zinc-950/50 p-6 transition-all duration-300 hover:border-[#00E08A]/25 hover:bg-zinc-950/80"
+                className="group relative flex flex-col gap-4 rounded-[14px] border border-[var(--mk-border)] bg-[var(--mk-card)] p-6 transition-all duration-300 hover:border-[var(--mk-border-green)] hover:bg-[var(--mk-card-hover)]"
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#00E08A] text-sm font-black text-[#00E08A]">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[var(--mk-green)] text-sm font-black text-[var(--mk-green)]">
                     {idx + 1}
                   </span>
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-[#00E08A] transition-colors group-hover:border-[#00E08A]/40 group-hover:bg-[#00E08A]/10">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[var(--mk-border)] bg-[var(--mk-bg-secondary)] text-[var(--mk-green)] transition-colors group-hover:border-[var(--mk-border-green)] group-hover:bg-[var(--mk-green)]/10">
                     <Icon className="h-4 w-4" />
                   </span>
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white sm:text-base">{step.title}</h3>
-                  <p className="mt-1.5 text-xs leading-relaxed text-zinc-500 sm:text-[13px]">
+                  <h3 className="text-sm font-bold text-[var(--mk-text)] sm:text-base">
+                    {step.title}
+                  </h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-[var(--mk-text-secondary)] sm:text-[13px]">
                     {step.desc}
                   </p>
                 </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 const bookmakers = [
@@ -14,53 +14,105 @@ const bookmakers = [
   'Betnacional',
 ]
 
-export function Bookmakers() {
-  const scrollerRef = useRef<HTMLDivElement>(null)
+function LogoChip({ name }: { name: string }) {
+  return (
+    <div className="flex h-14 min-w-[140px] shrink-0 items-center justify-center rounded-[12px] border border-[var(--mk-border)] bg-[var(--mk-card)] px-6">
+      <span className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--mk-text-secondary)]">
+        {name}
+      </span>
+    </div>
+  )
+}
 
-  const scroll = (dir: 'left' | 'right') => {
-    const el = scrollerRef.current
-    if (!el) return
-    el.scrollBy({ left: dir === 'left' ? -220 : 220, behavior: 'smooth' })
+export function Bookmakers() {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const [paused, setPaused] = useState(false)
+  const offsetRef = useRef(0)
+
+  useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced) return
+
+    let raf = 0
+    const speed = 0.45
+
+    const tick = () => {
+      const track = trackRef.current
+      if (track && !paused) {
+        offsetRef.current += speed
+        const half = track.scrollWidth / 2
+        if (half > 0 && offsetRef.current >= half) {
+          offsetRef.current -= half
+        }
+        track.style.transform = `translateX(-${offsetRef.current}px)`
+      }
+      raf = requestAnimationFrame(tick)
+    }
+
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [paused])
+
+  const nudge = (dir: 'left' | 'right') => {
+    const track = trackRef.current
+    if (!track) return
+    const delta = dir === 'left' ? -220 : 220
+    offsetRef.current = Math.max(0, offsetRef.current + delta)
+    const half = track.scrollWidth / 2
+    if (half > 0 && offsetRef.current >= half) offsetRef.current -= half
+    track.style.transform = `translateX(-${offsetRef.current}px)`
   }
 
-  return (
-    <section className="border-y border-zinc-900/80 bg-zinc-950/50 py-10">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p className="text-center text-sm font-medium text-zinc-400 sm:text-base">
-          Compare as principais casas em segundos
-        </p>
+  const loop = [...bookmakers, ...bookmakers]
 
-        <div className="relative mt-6 flex items-center gap-3">
+  return (
+    <section className="border-y border-white/5 bg-[var(--mk-bg-secondary)] py-12 sm:py-14">
+      <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-xl font-bold text-[var(--mk-text)] sm:text-2xl">
+            Compare as principais casas em segundos
+          </h2>
+          <p className="mt-2 text-sm text-[var(--mk-text-secondary)]">
+            Encontre a melhor odd entre as casas mais usadas no mercado brasileiro.
+          </p>
+        </div>
+
+        <div className="relative mt-8 flex items-center gap-3">
           <button
             type="button"
-            onClick={() => scroll('left')}
-            aria-label="Anterior"
-            className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900 text-zinc-400 transition-colors hover:text-white sm:flex"
+            onClick={() => nudge('left')}
+            aria-label="Casas anteriores"
+            className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--mk-border)] bg-[var(--mk-card)] text-[var(--mk-text-secondary)] transition-colors hover:text-[var(--mk-text)] sm:flex"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
 
           <div
-            ref={scrollerRef}
-            className="flex flex-1 gap-3 overflow-x-auto scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="relative min-w-0 flex-1 overflow-hidden"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
           >
-            {bookmakers.map((name) => (
-              <div
-                key={name}
-                className="flex h-14 min-w-[120px] shrink-0 items-center justify-center rounded-xl border border-zinc-800/80 bg-zinc-900/60 px-5"
-              >
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-400 sm:text-sm">
-                  {name}
-                </span>
-              </div>
-            ))}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-[var(--mk-bg-secondary)] to-transparent sm:w-16"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-[var(--mk-bg-secondary)] to-transparent sm:w-16"
+            />
+
+            <div ref={trackRef} className="flex w-max gap-3 py-1 will-change-transform">
+              {loop.map((name, i) => (
+                <LogoChip key={`${name}-${i}`} name={name} />
+              ))}
+            </div>
           </div>
 
           <button
             type="button"
-            onClick={() => scroll('right')}
-            aria-label="Próximo"
-            className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900 text-zinc-400 transition-colors hover:text-white sm:flex"
+            onClick={() => nudge('right')}
+            aria-label="Próximas casas"
+            className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--mk-border)] bg-[var(--mk-card)] text-[var(--mk-text-secondary)] transition-colors hover:text-[var(--mk-text)] sm:flex"
           >
             <ChevronRight className="h-4 w-4" />
           </button>

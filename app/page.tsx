@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Navbar } from '@/components/landing/navbar'
 import { Hero } from '@/components/landing/hero'
 import { Bookmakers } from '@/components/landing/bookmakers'
@@ -14,7 +14,7 @@ import { Testimonials } from '@/components/landing/testimonials'
 import { Faq } from '@/components/landing/faq'
 import { Cta } from '@/components/landing/cta'
 import { Footer } from '@/components/landing/footer'
-import { captureReferralCodeFromUrl, getPendingReferralCode, withReferralParam } from '@/lib/referral'
+import { captureReferralCodeFromUrl, withReferralParam } from '@/lib/referral'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -58,7 +58,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-black">
+    <main className="landing-page min-h-screen bg-[var(--mk-bg)] text-[var(--mk-text)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import {
   Scale,
   Wallet,
@@ -45,13 +44,16 @@ const features = [
 
 export function WhyThousandsChoose() {
   return (
-    <section id="recursos" className="relative overflow-hidden border-b border-zinc-900/40 bg-black py-20 sm:py-28">
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section
+      id="recursos"
+      className="relative overflow-hidden border-b border-white/5 bg-[var(--mk-bg)] py-20 sm:py-28"
+    >
+      <div className="relative mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <h2 className="text-balance text-3xl font-black tracking-tight text-white sm:text-4xl">
+          <h2 className="text-balance text-3xl font-black tracking-tight text-[var(--mk-text)] sm:text-4xl">
             Tudo o que você precisa em um único painel
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-zinc-400 sm:text-base">
+          <p className="mt-3 text-sm leading-relaxed text-[var(--mk-text-secondary)] sm:text-base">
             Ferramentas pensadas para organizar análise, execução e acompanhamento.
           </p>
         </div>
@@ -62,13 +64,15 @@ export function WhyThousandsChoose() {
             return (
               <div
                 key={item.title}
-                className="group rounded-2xl border border-zinc-900 bg-zinc-950/40 p-6 transition-all duration-300 hover:border-[#00E08A]/25 hover:bg-zinc-950/70"
+                className="group rounded-[14px] border border-[var(--mk-border)] bg-[var(--mk-card)] p-6 transition-all duration-300 hover:border-[var(--mk-border-green)] hover:bg-[var(--mk-card-hover)]"
               >
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#00E08A]/30 bg-transparent text-[#00E08A] transition-colors group-hover:bg-[#00E08A]/10">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] border border-[var(--mk-border-green)] bg-transparent text-[var(--mk-green)] transition-colors group-hover:bg-[var(--mk-green)]/10">
                   <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </span>
-                <h3 className="mt-4 text-sm font-bold text-white sm:text-base">{item.title}</h3>
-                <p className="mt-2 text-xs leading-relaxed text-zinc-500 sm:text-[13px]">
+                <h3 className="mt-4 text-sm font-bold text-[var(--mk-text)] sm:text-base">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-[var(--mk-text-secondary)] sm:text-[13px]">
                   {item.desc}
                 </p>
               </div>

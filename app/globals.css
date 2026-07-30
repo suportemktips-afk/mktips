@@ -145,6 +145,38 @@
   }
 }
 
+/* MK Tips landing tokens (scoped — does not override dashboard theme) */
+.landing-page {
+  --mk-bg: #02070b;
+  --mk-bg-secondary: #061017;
+  --mk-card: #081219;
+  --mk-card-hover: #0b1820;
+  --mk-border: rgba(255, 255, 255, 0.10);
+  --mk-border-green: rgba(105, 255, 20, 0.45);
+  --mk-green: #70e000;
+  --mk-green-bright: #83f52c;
+  --mk-text: #f5f7f8;
+  --mk-text-secondary: #a5afb7;
+  --mk-red: #ff3b30;
+  --background: #02070b;
+  --background-secondary: #061017;
+  --card: #081219;
+  --card-hover: #0b1820;
+  --border: rgba(255, 255, 255, 0.10);
+  --border-green: rgba(105, 255, 20, 0.45);
+  --green: #70e000;
+  --green-bright: #83f52c;
+  --text: #f5f7f8;
+  --text-secondary: #a5afb7;
+  --red: #ff3b30;
+  color: var(--mk-text);
+  background: var(--mk-bg);
+}
+
+.landing-page a {
+  scroll-behavior: smooth;
+}
+
 @layer utilities {
   .bg-grid {
     background-image:
@@ -167,6 +199,29 @@
   }
   .animate-marquee {
     animation: marquee 40s linear infinite;
+  }
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-marquee {
+      animation: none;
+    }
+    .landing-page .motion-safe-fade {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 

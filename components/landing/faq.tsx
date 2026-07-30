@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useId, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 const faqItems = [
@@ -40,27 +40,46 @@ const faqItems = [
 
 function AccordionItem({ q, a }: { q: string; a: string }) {
   const [isOpen, setIsOpen] = useState(false)
+  const panelId = useId()
+  const buttonId = useId()
 
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-900 bg-zinc-950/40 transition-all">
+    <div className="overflow-hidden rounded-[12px] border border-[var(--mk-border)] bg-[var(--mk-card)] transition-colors hover:border-white/15">
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full cursor-pointer items-center justify-between p-5 text-left text-sm font-semibold text-white transition-colors hover:text-[#00E08A]"
+        id={buttonId}
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        onClick={() => setIsOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setIsOpen((v) => !v)
+          }
+        }}
+        className="flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left text-sm font-semibold text-[var(--mk-text)] transition-colors hover:text-[var(--mk-green)]"
       >
         <span>{q}</span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-zinc-500 transition-transform duration-300 ${
-            isOpen ? 'rotate-180 text-[#00E08A]' : ''
+          className={`h-4 w-4 shrink-0 text-[var(--mk-text-secondary)] transition-transform duration-300 ${
+            isOpen ? 'rotate-180 text-[var(--mk-green)]' : ''
           }`}
+          aria-hidden
         />
       </button>
       <div
-        className={`overflow-hidden transition-all duration-300 ${
-          isOpen ? 'max-h-40 border-t border-zinc-900/60' : 'max-h-0'
+        id={panelId}
+        role="region"
+        aria-labelledby={buttonId}
+        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+          isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
         }`}
       >
-        <p className="p-5 text-sm leading-relaxed text-zinc-400">{a}</p>
+        <div className="overflow-hidden">
+          <p className="border-t border-white/5 px-5 pb-5 pt-4 text-sm leading-relaxed text-[var(--mk-text-secondary)]">
+            {a}
+          </p>
+        </div>
       </div>
     </div>
   )
@@ -68,18 +87,18 @@ function AccordionItem({ q, a }: { q: string; a: string }) {
 
 export function Faq() {
   return (
-    <section id="faq" className="relative overflow-hidden border-t border-zinc-900/40 bg-black py-20 sm:py-28">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+    <section id="faq" className="relative overflow-hidden border-b border-white/5 bg-[var(--mk-bg)] py-20 sm:py-28">
+      <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-balance text-3xl font-black tracking-tight text-white sm:text-4xl">
+          <h2 className="text-balance text-3xl font-black tracking-tight text-[var(--mk-text)] sm:text-4xl">
             Perguntas frequentes
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-zinc-400 sm:text-base">
+          <p className="mt-3 text-sm leading-relaxed text-[var(--mk-text-secondary)] sm:text-base">
             Tire dúvidas rápidas antes de escolher seu plano.
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
           {faqItems.map((item) => (
             <AccordionItem key={item.q} q={item.q} a={item.a} />
           ))}
