@@ -1,44 +1,37 @@
 'use client'
 
-import {
-  UserPlus,
-  LogIn,
-  Zap,
-  Scale,
-  BarChart3,
-  Wallet,
-} from 'lucide-react'
+import { User, Lock, Bell, Search, TrendingUp, Wallet, Plus } from 'lucide-react'
 
 const stepsList = [
   {
-    icon: UserPlus,
+    icon: User,
     title: 'Crie sua conta',
-    desc: 'Cadastro rápido com seus dados básicos para liberar o acesso à plataforma.',
+    desc: 'Faça seu cadastro e escolha o plano mais adequado para sua rotina.',
   },
   {
-    icon: LogIn,
+    icon: Lock,
     title: 'Acesse a plataforma',
-    desc: 'Entre no painel e configure seu perfil operacional em poucos minutos.',
+    desc: 'Após a confirmação do pagamento, seu acesso é liberado automaticamente.',
   },
   {
-    icon: Zap,
+    icon: Bell,
     title: 'Receba as oportunidades',
-    desc: 'Tips organizadas com contexto, odd sugerida e horário de entrada.',
+    desc: 'Acompanhe novas análises pelo painel ou por notificações no celular.',
   },
   {
-    icon: Scale,
+    icon: Search,
     title: 'Compare as odds',
-    desc: 'Veja em segundos qual casa oferece a melhor cotação no momento.',
+    desc: 'Veja rapidamente qual casa oferece a melhor cotação disponível.',
   },
   {
-    icon: BarChart3,
+    icon: TrendingUp,
     title: 'Acompanhe os resultados',
-    desc: 'Histórico completo de greens e reds, sem edições ou cortes.',
+    desc: 'Consulte greens, reds, ROI, Yield e todo o histórico de desempenho.',
   },
   {
     icon: Wallet,
     title: 'Controle sua banca',
-    desc: 'Monitore ROI, yield e evolução do capital em um único lugar.',
+    desc: 'Registre operações e acompanhe a evolução do seu caixa em tempo real.',
   },
 ]
 
@@ -46,55 +39,41 @@ export function HowItWorks() {
   return (
     <section
       id="como-funciona"
-      className="relative overflow-hidden border-b border-white/5 bg-[var(--mk-bg)] py-20 sm:py-28"
+      className="relative overflow-hidden border-b border-white/5 bg-[var(--mk-bg)] py-20 sm:py-24"
     >
       <div className="relative mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto mb-14 max-w-2xl text-center">
-          <h2 className="text-balance text-3xl font-black tracking-tight text-[var(--mk-text)] sm:text-4xl">
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <h2 className="text-balance text-3xl font-black tracking-tight text-white sm:text-4xl">
             Do cadastro ao controle da banca
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-[var(--mk-text-secondary)] sm:text-base">
-            Um fluxo simples para organizar sua rotina no mercado esportivo.
-          </p>
         </div>
 
-        <div className="relative grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Dotted connectors (desktop) */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-8 top-[72px] hidden lg:block"
-          >
-            <div className="mx-auto grid max-w-5xl grid-cols-3 gap-5">
-              <div className="relative col-span-3 h-0">
-                <div className="absolute left-[16%] right-[16%] top-0 border-t border-dashed border-[var(--mk-green)]/35" />
-                <div className="absolute left-[16%] top-[148px] right-[50%] border-t border-dashed border-[var(--mk-green)]/25" />
-              </div>
-            </div>
-          </div>
-
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-0">
           {stepsList.map((step, idx) => {
             const Icon = step.icon
             return (
-              <div
-                key={step.title}
-                className="group relative flex flex-col gap-4 rounded-[14px] border border-[var(--mk-border)] bg-[var(--mk-card)] p-6 transition-all duration-300 hover:border-[var(--mk-border-green)] hover:bg-[var(--mk-card-hover)]"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[var(--mk-green)] text-sm font-black text-[var(--mk-green)]">
+              <div key={step.title} className="flex flex-1 items-stretch lg:min-w-0">
+                <div className="relative flex w-full flex-col rounded-[14px] border border-white/10 bg-[var(--mk-card)] p-5 sm:p-6">
+                  <span className="mb-5 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--mk-green)] text-xs font-black text-[#02070b]">
                     {idx + 1}
                   </span>
-                  <span className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[var(--mk-border)] bg-[var(--mk-bg-secondary)] text-[var(--mk-green)] transition-colors group-hover:border-[var(--mk-border-green)] group-hover:bg-[var(--mk-green)]/10">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-[var(--mk-text)] sm:text-base">
-                    {step.title}
-                  </h3>
-                  <p className="mt-1.5 text-xs leading-relaxed text-[var(--mk-text-secondary)] sm:text-[13px]">
+                  <div className="mb-5 flex justify-center">
+                    <Icon className="h-9 w-9 text-white" strokeWidth={1.5} />
+                  </div>
+                  <h3 className="text-center text-sm font-bold text-white">{step.title}</h3>
+                  <p className="mt-2 text-center text-xs leading-relaxed text-[var(--mk-text-secondary)]">
                     {step.desc}
                   </p>
                 </div>
+
+                {idx < stepsList.length - 1 && (
+                  <div
+                    aria-hidden
+                    className="hidden shrink-0 items-center justify-center px-1.5 lg:flex"
+                  >
+                    <Plus className="h-4 w-4 text-[var(--mk-green)]" strokeWidth={2.5} />
+                  </div>
+                )}
               </div>
             )
           })}

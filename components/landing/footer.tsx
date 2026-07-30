@@ -4,34 +4,46 @@ import type { SVGProps } from 'react'
 
 function IconInstagram(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" {...props}>
-      <rect x="3" y="3" width="18" height="18" rx="5" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <defs>
+        <linearGradient id="ig" x1="0" y1="24" x2="24" y2="0">
+          <stop stopColor="#f58529" />
+          <stop offset="0.5" stopColor="#dd2a7b" />
+          <stop offset="1" stopColor="#515bd4" />
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="20" height="20" rx="5" fill="url(#ig)" />
+      <circle cx="12" cy="12" r="4.2" stroke="white" strokeWidth="1.6" />
+      <circle cx="17.2" cy="6.8" r="1.1" fill="white" />
     </svg>
   )
 }
 
 function IconTelegram(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M21.5 3.4 2.9 10.6c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.7.4 1 .9 1 .6 0 .8-.2 1.1-.5l2.7-2.6 5.6 4.1c1 .6 1.8.3 2-.9L23 4.7c.3-1.3-.5-1.9-1.5-1.3z" />
+    <svg viewBox="0 0 24 24" fill="#2AABEE" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <path
+        d="M16.8 8.2 8.9 11.4c-.5.2-.5.5-.1.6l2 .6  .8 2.5c.1.3.2.4.4.4.2 0 .3-.1.5-.3l1.2-1.2 2.5 1.8c.5.3.8.1.9-.4l1.5-7c.2-.7-.2-1-.8-.6z"
+        fill="white"
+      />
     </svg>
   )
 }
 
 function IconYoutube(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M23 12.2s0-3.2-.4-4.7c-.2-.9-.9-1.6-1.8-1.8C19.2 5.2 12 5.2 12 5.2s-7.2 0-8.8.5c-.9.2-1.6.9-1.8 1.8C1 9 1 12.2 1 12.2s0 3.2.4 4.7c.2.9.9 1.6 1.8 1.8 1.6.4 8.8.4 8.8.4s7.2 0 8.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.5.4-4.7.4-4.7zM9.8 15.5v-6.6l6 3.3-6 3.3z" />
+    <svg viewBox="0 0 24 24" fill="#FF0000" {...props}>
+      <path d="M23 12.2s0-3.2-.4-4.7c-.2-.9-.9-1.6-1.8-1.8C19.2 5.2 12 5.2 12 5.2s-7.2 0-8.8.5c-.9.2-1.6.9-1.8 1.8C1 9 1 12.2 1 12.2s0 3.2.4 4.7c.2.9.9 1.6 1.8 1.8 1.6.4 8.8.4 8.8.4s7.2 0 8.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.5.4-4.7.4-4.7z" />
+      <path d="M9.8 15.5v-6.6l6 3.3-6 3.3z" fill="white" />
     </svg>
   )
 }
 
 function IconWhatsApp(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M12 2a9.9 9.9 0 0 0-8.5 15l-1.1 4 4.1-1.1A9.9 9.9 0 1 0 12 2zm0 18a8.1 8.1 0 0 1-4.1-1.1l-.3-.2-2.4.6.6-2.4-.2-.3A8.1 8.1 0 1 1 12 20zm4.5-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.7.9-.1.2-.3.2-.5.1-.2-.1-.9-.3-1.8-1.1-.7-.6-1.1-1.3-1.2-1.5-.1-.2 0-.4.1-.5l.4-.5c.1-.1.2-.3.2-.4 0-.1 0-.3-.1-.4-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2.9 2.3c.1.2 1.6 2.5 3.9 3.4 2.3.9 2.3.6 2.7.6.4 0 1.3-.5 1.5-1 .2-.5.2-.9.1-1 0-.1-.2-.2-.4-.3z" />
+    <svg viewBox="0 0 24 24" fill="#25D366" {...props}>
+      <path d="M12 2a9.9 9.9 0 0 0-8.5 15l-1.1 4 4.1-1.1A9.9 9.9 0 1 0 12 2zm5.7 14.1c-.2.7-1.3 1.2-2.1 1.4-.5.1-1.2.2-3.5-.7-2.9-1.2-4.8-4.2-4.9-4.4-.2-.2-1.3-1.7-1.3-3.3 0-1.5.8-2.3 1.1-2.6.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .6.5l.8 2c.1.3 0 .5-.1.7l-.4.5c-.1.2-.3.3-.1.6.2.3.7 1.2 1.6 1.9 1.1.9 2 1.2 2.3 1.3.3.1.5.1.7-.1l.7-.8c.2-.2.4-.2.6-.1l1.9.9c.2.1.4.2.4.4 0 .1 0 .6-.2 1.2z" />
     </svg>
   )
 }
@@ -78,14 +90,14 @@ export function Footer() {
         <div className="grid gap-10 lg:grid-cols-[2fr_repeat(3,1fr)]">
           <div className="space-y-4">
             <a href="#" className="flex items-baseline gap-0.5" aria-label="MK TIPS">
-              <span className="text-lg font-black tracking-tight text-[var(--mk-text)]">MK</span>
+              <span className="text-lg font-black tracking-tight text-white">MK</span>
               <span className="text-lg font-black tracking-tight text-[var(--mk-green)]">TIPS</span>
             </a>
             <p className="max-w-xs text-sm leading-relaxed text-[var(--mk-text-secondary)]">
-              Plataforma de tips esportivas com histórico transparente, comparação de odds e gestão
-              de banca.
+              Análises, comparação de odds, histórico transparente e gestão de banca em um único
+              lugar.
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-2.5">
               {socials.map((social) => {
                 const Icon = social.icon
                 return (
@@ -93,9 +105,9 @@ export function Footer() {
                     key={social.label}
                     href={social.href}
                     aria-label={social.label}
-                    className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[var(--mk-border)] bg-[var(--mk-card)] text-[var(--mk-text-secondary)] transition-all hover:border-[var(--mk-border-green)] hover:text-[var(--mk-green)]"
+                    className="flex h-9 w-9 items-center justify-center rounded-full transition-transform hover:scale-105"
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-7 w-7" />
                   </a>
                 )
               })}
@@ -104,15 +116,13 @@ export function Footer() {
 
           {columns.map((col) => (
             <div key={col.title} className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--mk-text)]">
-                {col.title}
-              </h3>
+              <h3 className="text-sm font-bold text-white">{col.title}</h3>
               <ul className="space-y-2.5">
                 {col.links.map((link) => (
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-xs text-[var(--mk-text-secondary)] transition-colors hover:text-[var(--mk-text)]"
+                      className="text-sm text-[var(--mk-text-secondary)] transition-colors hover:text-white"
                     >
                       {link.label}
                     </a>
@@ -123,11 +133,10 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="space-y-4 border-t border-white/5 pt-8">
-          <p className="max-w-4xl text-[10px] leading-relaxed text-white/35">
-            Apostas esportivas envolvem risco financeiro. Jogue com responsabilidade e aposte apenas
-            o que você pode perder. Proibido para menores de 18 anos. Se o jogo deixou de ser
-            diversão, procure ajuda.
+        <div className="space-y-3 border-t border-white/5 pt-8 text-center">
+          <p className="text-[11px] leading-relaxed text-white/40">
+            Apostas esportivas envolvem risco financeiro. Aposte apenas valores que você pode
+            perder. Proibido para menores de 18 anos.
           </p>
           <p className="text-xs font-medium text-[var(--mk-text-secondary)]">
             © 2026 MK TIPS. Todos os direitos reservados.

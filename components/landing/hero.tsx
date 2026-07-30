@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowRight, Play, Lock, Scale, BarChart3, Wallet, Bell } from 'lucide-react'
+import { ArrowRight, Play, Lock, Scale, FileCheck, TrendingUp, Bell } from 'lucide-react'
 import { DeviceMockups } from './device-mockups'
 
 const featurePills = [
-  { icon: Scale, label: 'Comparação' },
-  { icon: BarChart3, label: 'Métricas' },
-  { icon: Wallet, label: 'Gestão' },
-  { icon: Bell, label: 'Alertas' },
+  { icon: Scale, label: 'Comparação automática de odds' },
+  { icon: FileCheck, label: 'Histórico completo e auditado' },
+  { icon: TrendingUp, label: 'Gestão inteligente de banca' },
+  { icon: Bell, label: 'Alertas em tempo real' },
 ]
 
 export function Hero({ onStartFree: _onStartFree }: { onStartFree: () => void }) {
@@ -31,7 +31,7 @@ export function Hero({ onStartFree: _onStartFree }: { onStartFree: () => void })
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage: `
-            radial-gradient(ellipse 55% 45% at 78% 28%, rgba(112,224,0,0.10) 0%, transparent 60%),
+            radial-gradient(ellipse 55% 45% at 78% 28%, rgba(112,224,0,0.12) 0%, transparent 60%),
             radial-gradient(ellipse 40% 35% at 12% 75%, rgba(112,224,0,0.04) 0%, transparent 55%)
           `,
         }}
@@ -44,33 +44,33 @@ export function Hero({ onStartFree: _onStartFree }: { onStartFree: () => void })
               ready ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
             }`}
           >
-            <h1 className="max-w-[620px] text-balance text-4xl font-black leading-[1.1] tracking-tight text-[var(--mk-text)] sm:text-5xl lg:text-[3.35rem]">
+            <h1 className="max-w-[620px] text-balance text-4xl font-black leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-[3.35rem]">
               Mais controle para tomar melhores{' '}
               <span className="text-[var(--mk-green)]">decisões</span> no mercado esportivo
             </h1>
 
             <div className="max-w-[540px] space-y-3 text-[15px] leading-relaxed text-[var(--mk-text-secondary)] sm:text-base">
               <p>
-                Organize análises, compare odds e acompanhe sua banca com transparência — tudo em um
-                painel pensado para quem quer operar com mais clareza e menos ruído.
+                Analise oportunidades, compare odds, acompanhe resultados e gerencie sua banca em
+                uma única plataforma.
               </p>
               <p>
-                Centralize tips, histórico e métricas em um só lugar e tome decisões com contexto,
-                consistência e controle da operação.
+                A MK Tips reúne as ferramentas que você precisa para operar com mais organização,
+                agilidade e transparência.
               </p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <a
                 href="#planos"
-                className="group inline-flex h-12 items-center justify-center gap-2 rounded-[12px] bg-[var(--mk-green)] px-7 text-sm font-bold text-[#02070b] shadow-[0_8px_28px_rgba(112,224,0,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--mk-green-bright)] hover:shadow-[0_12px_36px_rgba(112,224,0,0.38)]"
+                className="group inline-flex h-12 items-center justify-center gap-2 rounded-[12px] bg-[var(--mk-green)] px-7 text-sm font-bold text-[#02070b] shadow-[0_8px_28px_rgba(112,224,0,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--mk-green-bright)]"
               >
                 Conhecer os planos
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </a>
               <a
                 href="#como-funciona"
-                className="inline-flex h-12 items-center justify-center gap-2.5 rounded-[12px] border border-white/25 bg-transparent px-7 text-sm font-semibold text-[var(--mk-text)] transition-all duration-300 hover:border-white/45 hover:bg-white/5"
+                className="inline-flex h-12 items-center justify-center gap-2.5 rounded-[12px] border border-white/25 bg-transparent px-7 text-sm font-semibold text-white transition-all duration-300 hover:border-white/45 hover:bg-white/5"
               >
                 <span className="flex h-6 w-6 items-center justify-center rounded-full border border-white/30">
                   <Play className="h-3 w-3 fill-current" />
@@ -85,9 +85,9 @@ export function Hero({ onStartFree: _onStartFree }: { onStartFree: () => void })
                 return (
                   <div
                     key={item.label}
-                    className="inline-flex items-center gap-2 rounded-full border border-[var(--mk-border)] bg-[var(--mk-card)] px-3.5 py-1.5 text-[12px] font-medium text-[var(--mk-text)]"
+                    className="inline-flex items-center gap-2 rounded-[10px] border border-white/10 bg-[var(--mk-card)] px-3 py-1.5 text-[12px] font-medium text-white"
                   >
-                    <Icon className="h-3.5 w-3.5 text-[var(--mk-green)]" strokeWidth={2.25} />
+                    <Icon className="h-3.5 w-3.5 shrink-0 text-[var(--mk-green)]" strokeWidth={2.25} />
                     {item.label}
                   </div>
                 )

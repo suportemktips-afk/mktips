@@ -6,14 +6,13 @@ const pricingPlans = [
   {
     name: 'Starter',
     price: '49,90',
-    period: '/mês',
-    description:
-      'Ideal para quem quer começar com organização: tips, histórico e painel simplificado.',
+    period: 'por mês',
+    description: 'Para quem está começando e deseja organizar melhor suas operações.',
     highlight: false,
     badge: null as string | null,
     cta: 'Começar no Starter',
     features: [
-      'Visualização básica de tips',
+      'Até 5 tips por dia',
       'Histórico dos últimos 30 dias',
       'Painel de controle simplificado',
       'Alertas básicos',
@@ -23,35 +22,34 @@ const pricingPlans = [
   {
     name: 'Premium',
     price: '97,90',
-    period: '/mês',
-    description:
-      'Acesso completo à plataforma, estatísticas avançadas, histórico ilimitado e gestão de banca.',
+    period: 'por mês',
+    description: 'Para quem deseja acesso completo à plataforma e às ferramentas avançadas.',
     highlight: true,
     badge: 'Mais escolhido',
     cta: 'Assinar o Premium',
     features: [
       'Tips ilimitadas',
       'Histórico completo e auditado',
-      'Métricas de ROI e Yield',
-      'Gestão de banca com calculadora',
+      'Estatísticas avançadas',
+      'Gestão de banca',
+      'Alertas push',
       'Suporte prioritário',
     ],
   },
   {
     name: 'VIP',
     price: '497,90',
-    period: '/ano',
-    description:
-      'Experiência completa por 12 meses, com economia anual e atendimento VIP.',
+    period: 'por ano',
+    description: 'Para quem busca economia e acesso aos recursos mais completos da MK Tips.',
     highlight: false,
-    badge: 'VIP Anual',
+    badge: null as string | null,
     cta: 'Tornar-se VIP',
     features: [
-      'Todos os recursos Premium',
-      'Economia no plano anual',
-      'Acesso antecipado a novidades',
-      'Atendimento prioritário VIP',
-      'Relatórios avançados',
+      'Todos os recursos do Premium',
+      'Maior economia no plano anual',
+      'Automação via WhatsApp CRM',
+      'Acesso antecipado a novos módulos',
+      'Atendimento VIP prioritário',
     ],
   },
 ]
@@ -68,17 +66,20 @@ export function Pricing({
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/4 h-[320px] w-[720px] -translate-x-1/2 rounded-full blur-[140px]"
-        style={{ background: 'rgba(112,224,0,0.06)' }}
+        className="pointer-events-none absolute inset-0 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(-12deg, transparent, transparent 28px, rgba(112,224,0,0.05) 28px, rgba(112,224,0,0.05) 29px)',
+        }}
       />
 
       <div className="relative mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <h2 className="text-balance text-3xl font-black tracking-tight text-[var(--mk-text)] sm:text-4xl">
+          <h2 className="text-balance text-3xl font-black tracking-tight text-white sm:text-4xl">
             Escolha o acesso ideal para sua rotina
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-[var(--mk-text-secondary)] sm:text-base">
-            Acesso imediato após a confirmação. Sem fidelidade obrigatória.
+            Sem multa de cancelamento e com liberação imediata após a confirmação do pagamento.
           </p>
         </div>
 
@@ -88,51 +89,42 @@ export function Pricing({
               key={plan.name}
               className={`relative flex flex-col justify-between rounded-[14px] border p-6 sm:p-8 transition-all duration-300 ${
                 plan.highlight
-                  ? 'border-[var(--mk-border-green)] bg-[var(--mk-card)] shadow-[0_20px_60px_rgba(112,224,0,0.12)] lg:-mt-3 lg:mb-3'
-                  : 'border-[var(--mk-border)] bg-[var(--mk-card)]/70 hover:bg-[var(--mk-card-hover)]'
+                  ? 'border-[var(--mk-green)] bg-[var(--mk-card)] shadow-[0_20px_60px_rgba(112,224,0,0.14)] lg:-mt-2 lg:mb-2'
+                  : 'border-white/10 bg-[var(--mk-card)]/80'
               }`}
             >
               {plan.badge && (
-                <span
-                  className={`absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-wider ${
-                    plan.highlight
-                      ? 'bg-[var(--mk-green)] text-[#02070b] shadow-lg shadow-[rgba(112,224,0,0.25)]'
-                      : 'border border-[var(--mk-border)] bg-[var(--mk-bg-secondary)] text-[var(--mk-text-secondary)]'
-                  }`}
-                >
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[var(--mk-green)] px-3 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#02070b]">
                   {plan.badge}
                 </span>
               )}
 
               <div className="space-y-4">
-                <h3 className="text-base font-bold uppercase tracking-wider text-[var(--mk-text)]">
+                <h3 className="text-lg font-bold text-white">
                   {plan.name === 'VIP' ? 'VIP Anual' : plan.name}
                 </h3>
-                <p className="min-h-[72px] text-xs leading-relaxed text-[var(--mk-text-secondary)]">
+                <p className="min-h-[48px] text-sm leading-relaxed text-[var(--mk-text-secondary)]">
                   {plan.description}
                 </p>
 
-                <div className="flex items-baseline gap-1 pt-1">
-                  <span className="text-xs font-bold uppercase text-[var(--mk-text-secondary)]">
-                    R$
-                  </span>
-                  <span className="font-mono text-3xl font-black tracking-tight text-[var(--mk-text)]">
+                <div className="flex flex-wrap items-baseline gap-1.5 pt-1">
+                  <span className="text-sm font-medium text-[var(--mk-text-secondary)]">R$</span>
+                  <span className="font-mono text-4xl font-black tracking-tight text-[var(--mk-green)]">
                     {plan.price}
                   </span>
-                  <span className="text-xs font-bold text-[var(--mk-text-secondary)]">
-                    {plan.period}
-                  </span>
+                  <span className="text-sm text-[var(--mk-text-secondary)]">{plan.period}</span>
                 </div>
 
                 <ul className="space-y-3 border-t border-white/5 pt-5">
                   {plan.features.map((feature) => (
                     <li
                       key={feature}
-                      className="flex items-start gap-2.5 text-xs text-[var(--mk-text-secondary)]"
+                      className="flex items-start gap-2.5 text-sm text-[var(--mk-text-secondary)]"
                     >
-                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-[var(--mk-border-green)] bg-[var(--mk-green)]/10 text-[var(--mk-green)]">
-                        <Check className="h-2.5 w-2.5" />
-                      </span>
+                      <Check
+                        className="mt-0.5 h-4 w-4 shrink-0 text-[var(--mk-green)]"
+                        strokeWidth={2.5}
+                      />
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -150,10 +142,10 @@ export function Pricing({
                         | 'VIP Anual',
                     )
                   }
-                  className={`w-full cursor-pointer rounded-[12px] py-3 text-xs font-bold uppercase tracking-wider transition-all ${
+                  className={`w-full cursor-pointer rounded-[12px] py-3 text-sm font-bold transition-all ${
                     plan.highlight
                       ? 'bg-[var(--mk-green)] text-[#02070b] hover:bg-[var(--mk-green-bright)]'
-                      : 'border border-[var(--mk-border)] bg-[var(--mk-bg-secondary)] text-[var(--mk-text)] hover:border-white/25'
+                      : 'border border-white/20 bg-transparent text-white hover:bg-white/5'
                   }`}
                 >
                   {plan.cta}

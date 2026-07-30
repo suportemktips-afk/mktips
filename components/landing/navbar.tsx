@@ -41,7 +41,7 @@ export function Navbar({ onStartFree: _onStartFree }: { onStartFree: () => void 
     >
       <nav className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-4 sm:px-6 lg:px-8">
         <a href="#" className="flex items-baseline gap-0.5" aria-label="MK TIPS, página inicial">
-          <span className="text-lg font-black tracking-tight text-[var(--mk-text)]">MK</span>
+          <span className="text-lg font-black tracking-tight text-white">MK</span>
           <span className="text-lg font-black tracking-tight text-[var(--mk-green)]">TIPS</span>
         </a>
 
@@ -50,7 +50,7 @@ export function Navbar({ onStartFree: _onStartFree }: { onStartFree: () => void 
             <a
               key={link.href}
               href={link.href}
-              className="rounded-lg px-3 py-2 text-[13px] font-medium text-[var(--mk-text-secondary)] transition-colors hover:text-[var(--mk-text)]"
+              className="rounded-lg px-3 py-2 text-[13px] font-medium text-white/80 transition-colors hover:text-white"
             >
               {link.label}
             </a>
@@ -60,15 +60,15 @@ export function Navbar({ onStartFree: _onStartFree }: { onStartFree: () => void 
         <div className="hidden items-center md:flex">
           <a
             href="/login"
-            className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/20 bg-transparent px-5 text-sm font-semibold text-[var(--mk-text)] transition-colors hover:border-white/40 hover:bg-white/5"
+            className="inline-flex h-10 items-center justify-center rounded-[12px] border border-white/25 bg-transparent px-5 text-sm font-semibold text-white transition-colors hover:border-white/45 hover:bg-white/5"
           >
-            Entrar na plataforma
+            Entrar e começar agora
           </a>
         </div>
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-[var(--mk-text)] md:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-white md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Fechar menu' : 'Abrir menu'}
           aria-expanded={open}
@@ -89,7 +89,7 @@ export function Navbar({ onStartFree: _onStartFree }: { onStartFree: () => void 
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="block rounded-lg px-3 py-3 text-sm text-[var(--mk-text-secondary)] hover:bg-white/5 hover:text-[var(--mk-text)]"
+                className="block rounded-lg px-3 py-3 text-sm text-white/75 hover:bg-white/5 hover:text-white"
               >
                 {link.label}
               </a>
@@ -97,9 +97,9 @@ export function Navbar({ onStartFree: _onStartFree }: { onStartFree: () => void 
             <div className="flex flex-col gap-2 pt-3">
               <a
                 href="/login"
-                className="inline-flex h-11 w-full items-center justify-center rounded-[12px] border border-white/20 text-sm font-semibold text-[var(--mk-text)]"
+                className="inline-flex h-11 w-full items-center justify-center rounded-[12px] border border-white/25 text-sm font-semibold text-white"
               >
-                Entrar na plataforma
+                Entrar e começar agora
               </a>
               <a
                 href="#planos"
