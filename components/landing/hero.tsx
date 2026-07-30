@@ -1,114 +1,114 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { ArrowRight, Play, Lock, Scale, ShieldCheck, TrendingUp, Bell } from 'lucide-react'
-import { DeviceMockups } from './device-mockups'
+import Image from 'next/image'
+import { ArrowRight, Play, Lock, Scale, ShieldCheck, Landmark, Bell } from 'lucide-react'
 
 const featurePills = [
   { icon: Scale, label: 'Comparação automática de odds' },
   { icon: ShieldCheck, label: 'Histórico completo e auditado' },
-  { icon: TrendingUp, label: 'Gestão inteligente de banca' },
+  { icon: Landmark, label: 'Gestão inteligente de banca' },
   { icon: Bell, label: 'Alertas em tempo real' },
 ]
 
 export function Hero({ onStartFree: _onStartFree }: { onStartFree: () => void }) {
-  const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduced) {
-      setReady(true)
-      return
-    }
-    const t = requestAnimationFrame(() => setReady(true))
-    return () => cancelAnimationFrame(t)
-  }, [])
-
   return (
-    <section className="relative overflow-x-clip overflow-y-visible bg-[var(--mk-bg)] pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28">
+    <section className="relative min-h-[680px] overflow-hidden bg-[#02080c] lg:min-h-[720px] xl:min-h-[760px]">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage: `
-            radial-gradient(ellipse 50% 48% at 82% 42%, rgba(112,224,0,0.14) 0%, transparent 62%),
-            radial-gradient(ellipse 35% 30% at 8% 80%, rgba(112,224,0,0.04) 0%, transparent 55%)
+            radial-gradient(circle at 76% 40%, rgba(99, 255, 0, 0.12), transparent 36%),
+            linear-gradient(180deg, #02080c 0%, #02070b 100%)
           `,
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-6 xl:gap-8">
-          <div
-            className={`motion-safe-fade space-y-6 lg:col-span-5 xl:col-span-5 transition-all duration-700 ease-out ${
-              ready ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-            }`}
-          >
-            <h1 className="max-w-[560px] text-balance text-4xl font-black leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.15rem] xl:text-[3.35rem]">
-              Mais controle para tomar melhores{' '}
-              <span className="text-[var(--mk-green)]">decisões</span> no mercado esportivo
-            </h1>
+      <div className="mx-auto grid min-h-[680px] w-full max-w-[1840px] grid-cols-1 items-center px-6 py-12 md:px-10 lg:min-h-[720px] lg:grid-cols-[42%_58%] lg:px-16 lg:py-0 xl:min-h-[760px] xl:px-20">
+        <div className="relative z-20 max-w-[640px]">
+          <h1 className="text-[44px] font-extrabold leading-[1.02] tracking-[-0.045em] text-white sm:text-[52px] lg:text-[60px] xl:text-[68px]">
+            Mais controle para
+            <br />
+            tomar melhores
+            <br />
+            <span className="text-[#70e000]">decisões</span> no
+            <br />
+            mercado esportivo
+          </h1>
 
-            <div className="max-w-[520px] space-y-3 text-[15px] leading-relaxed text-[var(--mk-text-secondary)] sm:text-base">
-              <p>
-                Analise oportunidades, compare odds, acompanhe resultados e gerencie sua banca em
-                uma única plataforma.
-              </p>
-              <p>
-                A MK Tips reúne as ferramentas que você precisa para operar com mais organização,
-                agilidade e transparência.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <a
-                href="#planos"
-                className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--mk-green)] px-7 text-sm font-bold text-[#02070b] shadow-[0_8px_28px_rgba(112,224,0,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--mk-green-bright)]"
-              >
-                Conhecer os planos
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </a>
-              <a
-                href="#como-funciona"
-                className="inline-flex h-12 items-center justify-center gap-2.5 rounded-full border border-white/30 bg-transparent px-7 text-sm font-semibold text-white transition-all duration-300 hover:border-white/50 hover:bg-white/5"
-              >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full border border-white/35">
-                  <Play className="h-3 w-3 fill-current" />
-                </span>
-                Ver como funciona
-              </a>
-            </div>
-
-            <div className="grid max-w-md grid-cols-1 gap-2 sm:grid-cols-2">
-              {featurePills.map((item) => {
-                const Icon = item.icon
-                return (
-                  <div
-                    key={item.label}
-                    className="inline-flex items-center gap-2.5 rounded-[10px] border border-white/15 bg-transparent px-3 py-2.5 text-[12px] font-medium leading-snug text-white"
-                  >
-                    <Icon
-                      className="h-4 w-4 shrink-0 text-[var(--mk-green)]"
-                      strokeWidth={2}
-                    />
-                    {item.label}
-                  </div>
-                )
-              })}
-            </div>
-
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--mk-border-green)] bg-[var(--mk-green)]/10 px-3.5 py-1.5 text-xs font-medium text-[var(--mk-green)]">
-              <Lock className="h-3.5 w-3.5" />
-              <span className="font-mono tracking-tight">app.mktips.com/dashboard</span>
-            </div>
+          <div className="mt-7 max-w-[610px] space-y-3 text-[16px] leading-[1.65] text-[#aab4bc] xl:text-[17px]">
+            <p>
+              Analise oportunidades, compare odds, acompanhe resultados e gerencie sua banca em
+              uma única plataforma.
+            </p>
+            <p>
+              A MK Tips reúne as ferramentas que você precisa para operar com mais organização,
+              agilidade e transparência.
+            </p>
           </div>
 
-          <div
-            className={`motion-safe-fade relative overflow-visible lg:col-span-7 xl:col-span-7 transition-all duration-1000 ease-out ${
-              ready ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-            }`}
-          >
-            <DeviceMockups />
+          <div className="mt-8 flex flex-wrap gap-4">
+            <a
+              href="#planos"
+              className="inline-flex h-[56px] w-[220px] items-center justify-center gap-2 rounded-[14px] bg-[#70e000] text-[15px] font-bold text-[#02070b] transition-colors hover:bg-[#7ef000]"
+            >
+              Conhecer os planos
+              <ArrowRight className="h-4 w-4" />
+            </a>
+            <a
+              href="#como-funciona"
+              className="inline-flex h-[56px] w-[220px] items-center justify-center gap-2.5 rounded-[14px] border border-white/25 bg-transparent text-[15px] font-semibold text-white transition-colors hover:border-white/40 hover:bg-white/5"
+            >
+              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-white/35">
+                <Play className="h-3 w-3 fill-current" />
+              </span>
+              Ver como funciona
+            </a>
+          </div>
+
+          <div className="mt-6 grid max-w-[620px] grid-cols-2 gap-3">
+            {featurePills.map((item) => {
+              const Icon = item.icon
+              return (
+                <div
+                  key={item.label}
+                  className="inline-flex min-h-[48px] items-center gap-2.5 rounded-xl border border-white/10 bg-[#071117] px-4 text-[13px] font-medium leading-snug text-white"
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-[#70e000]" strokeWidth={2} />
+                  {item.label}
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="mt-5 inline-flex h-[44px] items-center gap-3 rounded-full border border-[#70e000]/60 bg-[#07120a] px-5 text-sm font-semibold text-[#70e000]">
+            <Lock className="h-3.5 w-3.5" />
+            <span className="font-mono tracking-tight">app.mktips.com/dashboard</span>
+          </div>
+
+          <div className="relative mt-10 h-[440px] w-full lg:hidden">
+            <Image
+              src="/images/mk-tips-hero-devices.png"
+              alt="Plataforma MK Tips"
+              fill
+              priority
+              sizes="100vw"
+              className="object-contain object-center"
+            />
+          </div>
+        </div>
+
+        <div className="relative hidden h-[650px] w-full items-center justify-end lg:flex">
+          <div className="absolute right-[-5%] top-[5%] h-[600px] w-[850px] rounded-full bg-[#65e600]/10 blur-[150px]" />
+          <div className="relative z-10 h-[620px] w-full max-w-[1050px]">
+            <Image
+              src="/images/mk-tips-hero-devices.png"
+              alt="Dashboard da MK Tips em notebook, tablet e celulares"
+              fill
+              priority
+              sizes="(min-width: 1440px) 1000px, 58vw"
+              className="object-contain object-right"
+            />
           </div>
         </div>
       </div>
