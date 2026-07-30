@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mktips-cache-v3';
+const CACHE_NAME = 'mktips-cache-v4';
 const OFFLINE_URL = '/offline.html';
 
 const ASSETS_TO_CACHE = [
@@ -51,4 +51,34 @@ self.addEventListener('fetch', (event) => {
       })
     );
   }
+});
+
+self.addEventListener('message', (event) => {
+  const data = event.data || {};
+  if (data.type !== 'SHOW_NOTIFICATION') return;
+  const title = data.title || 'MK Tips';
+  const options = {
+    body: data.body || '',
+    icon: data.icon || '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: 'mktips-tip',
+    data: { url: data.url || '/dashboard/tips' },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/dashboard/tips';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const client of list) {
+        if ('focus' in client) {
+          client.focus();
+          return;
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
 });

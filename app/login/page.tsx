@@ -27,7 +27,7 @@ export default function UserLoginPage() {
     setError('')
 
     try {
-      await db.refresh()
+      // Não faz refresh da base inteira antes do login (vazava telefones de todos)
       const result = await db.loginWithCredentialsAsync(email.trim(), password)
       if (!result.ok || !result.user) {
         setError(result.error || 'E-mail ou senha incorretos.')
@@ -49,6 +49,9 @@ export default function UserLoginPage() {
       localStorage.setItem('oddvault_user_session', 'true')
       localStorage.setItem('oddvault_pwa_show_after_login', '1')
       db.setActiveUser(result.user.id)
+      // Limpa lista antiga de usuários no browser (privacidade)
+      localStorage.setItem('mktips_mock_users', JSON.stringify([result.user]))
+      await db.refresh()
       db.addLog('Auth', `Usuário ${result.user.name} logado com sucesso`, db.getClientIp(), 'Web App', result.user.name)
       router.push('/dashboard')
     } catch {

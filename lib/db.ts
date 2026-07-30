@@ -366,7 +366,30 @@ let _cache: {
   bookmakers: [],
 };
 
-// Background sync: fetches all data from Supabase into cache
+const ACTIVE_USER_KEY = 'mktips_active_user_id';
+
+function isBrowserAdminSession(): boolean {
+  return typeof window !== 'undefined' && localStorage.getItem('oddvault_admin_session') === 'true';
+}
+
+function isBrowserClientSession(): boolean {
+  return typeof window !== 'undefined' && localStorage.getItem('oddvault_user_session') === 'true';
+}
+
+/** Área do cliente: só a própria conta no cache/localStorage — nunca a base de leads. */
+function persistPrivateUserCache(users: DBUser[]) {
+  _cache.users = users;
+  if (typeof window === 'undefined') return;
+  if (isBrowserClientSession() && !isBrowserAdminSession()) {
+    const activeId = localStorage.getItem(ACTIVE_USER_KEY);
+    const mine = activeId ? users.filter((u) => u.id === activeId) : [];
+    localStorage.setItem('mktips_mock_users', JSON.stringify(mine));
+    return;
+  }
+  localStorage.setItem('mktips_mock_users', JSON.stringify(users));
+}
+
+// Background sync: fetches data from Supabase into cache
 async function syncFromSupabase(): Promise<void> {
   if (!isSupabaseConfigured) {
     console.warn('Supabase not configured. Running with mock data fallback.');
@@ -400,9 +423,21 @@ async function syncFromSupabase(): Promise<void> {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('mktips_mock_users');
       if (stored) {
-        _cache.users = JSON.parse(stored);
+        try {
+          const parsed = JSON.parse(stored) as DBUser[];
+          // Cliente nunca deve herdar lista antiga com telefones de terceiros
+          if (isBrowserClientSession() && !isBrowserAdminSession()) {
+            const activeId = localStorage.getItem(ACTIVE_USER_KEY);
+            _cache.users = activeId ? parsed.filter((u) => u.id === activeId) : [];
+            localStorage.setItem('mktips_mock_users', JSON.stringify(_cache.users));
+          } else {
+            _cache.users = parsed;
+          }
+        } catch {
+          _cache.users = [defaultAdmin];
+        }
       } else {
-        _cache.users = [defaultAdmin];
+        _cache.users = isBrowserClientSession() ? [] : [defaultAdmin];
         localStorage.setItem('mktips_mock_users', JSON.stringify(_cache.users));
       }
     } else {
@@ -412,30 +447,54 @@ async function syncFromSupabase(): Promise<void> {
     return;
   }
   try {
+    const clientOnly = isBrowserClientSession() && !isBrowserAdminSession();
+    const activeId = typeof window !== 'undefined' ? localStorage.getItem(ACTIVE_USER_KEY) : null;
+
+    const usersPromise = clientOnly
+      ? activeId
+        ? supabase.from('users').select('*').eq('id', activeId).maybeSingle()
+        : Promise.resolve({ data: null, error: null })
+      : supabase.from('users').select('*').order('created_at', { ascending: false });
+
     const [usersRes, tipstersRes, tipsRes, logsRes, auditRes, ticketsRes, refsRes] = await Promise.all([
-      supabase.from('users').select('*').order('created_at', { ascending: false }),
+      usersPromise,
       supabase.from('tipsters').select('*').order('created_at', { ascending: false }),
       supabase.from('tips').select('*').order('created_at', { ascending: false }),
-      supabase.from('logs').select('*').order('timestamp', { ascending: false }).limit(100),
-      supabase.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(100),
+      clientOnly
+        ? Promise.resolve({ data: [], error: null })
+        : supabase.from('logs').select('*').order('timestamp', { ascending: false }).limit(100),
+      clientOnly
+        ? Promise.resolve({ data: [], error: null })
+        : supabase.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(100),
       supabase.from('tickets').select('*').order('created_at', { ascending: false }),
       supabase.from('referrals').select('*').order('created_at', { ascending: false }),
     ]);
 
-    const dbUsers = (usersRes.data || []).map(mapUserFromRow);
-    const localUsersStr = typeof window !== 'undefined' ? localStorage.getItem('mktips_mock_users') : null;
-    const localUsers: DBUser[] = localUsersStr ? JSON.parse(localUsersStr) : [];
-
-    const combinedUsers = [...dbUsers];
-    for (const lu of localUsers) {
-      if (!combinedUsers.some(u => u.email.toLowerCase() === lu.email.toLowerCase())) {
-        combinedUsers.push(lu);
-      }
+    let dbUsers: DBUser[] = [];
+    if (clientOnly) {
+      const row = (usersRes as { data: any }).data;
+      dbUsers = row ? [mapUserFromRow(row)] : [];
+    } else {
+      dbUsers = ((usersRes as { data: any[] | null }).data || []).map(mapUserFromRow);
     }
-    _cache.users = combinedUsers;
+
+    if (clientOnly) {
+      // Só a conta logada — sem merge de lista antiga com outros telefones
+      persistPrivateUserCache(dbUsers);
+    } else {
+      const localUsersStr = typeof window !== 'undefined' ? localStorage.getItem('mktips_mock_users') : null;
+      const localUsers: DBUser[] = localUsersStr ? JSON.parse(localUsersStr) : [];
+      const combinedUsers = [...dbUsers];
+      for (const lu of localUsers) {
+        if (!combinedUsers.some((u) => u.email.toLowerCase() === lu.email.toLowerCase())) {
+          combinedUsers.push(lu);
+        }
+      }
+      persistPrivateUserCache(combinedUsers);
+    }
     
     // Seed default admin user if database is completely empty so that the dashboard doesn't lock
-    if (_cache.users.length === 0) {
+    if (_cache.users.length === 0 && !clientOnly) {
       const defaultAdmin: DBUser = {
         id: '00000000-0000-0000-0000-000000000000',
         name: 'Admin Master',
@@ -472,10 +531,34 @@ async function syncFromSupabase(): Promise<void> {
       console.error('Tips sync error:', tipsRes.error.message);
     }
     _cache.tips = (tipsRes.data || []).map(mapTipFromRow);
-    _cache.logs = (logsRes.data || []).map(mapLogFromRow);
-    _cache.auditLogs = (auditRes.data || []).map(mapAuditLogFromRow);
-    _cache.tickets = (ticketsRes.data || []).map(mapTicketFromRow);
-    _cache.referrals = refsRes.data || [];
+
+    const me = _cache.users[0];
+    const myEmail = (me?.email || '').toLowerCase();
+    const myName = me?.name || '';
+
+    if (clientOnly) {
+      // Cliente não vê logs/auditoria/tickets de outras pessoas
+      _cache.logs = [];
+      _cache.auditLogs = [];
+      _cache.tickets = (ticketsRes.data || [])
+        .map(mapTicketFromRow)
+        .filter((t) => {
+          const cat = (t.category || '').toLowerCase();
+          const first = t.messages[0]?.sender || '';
+          return (
+            (myEmail && (cat === myEmail || first.toLowerCase().includes(myEmail))) ||
+            (myName && first.includes(myName))
+          );
+        });
+      _cache.referrals = (refsRes.data || []).filter(
+        (r: any) => !me?.id || r.referrer_id === me.id || r.referrerId === me.id,
+      );
+    } else {
+      _cache.logs = (logsRes.data || []).map(mapLogFromRow);
+      _cache.auditLogs = (auditRes.data || []).map(mapAuditLogFromRow);
+      _cache.tickets = (ticketsRes.data || []).map(mapTicketFromRow);
+      _cache.referrals = refsRes.data || [];
+    }
     _cache.initialized = true;
   } catch (e) {
     console.error('Supabase sync error:', e);
@@ -536,9 +619,6 @@ function emitUpdate() {
   }
 }
 
-// Active user ID (session-local)
-const ACTIVE_USER_KEY = 'mktips_active_user_id';
-
 // =============================================
 // DB API — Hybrid sync (cache) + async (Supabase write-through)
 // All getters are SYNC reading from cache.
@@ -555,19 +635,28 @@ export const db = {
   },
 
   // --- Users ---
-  getUsers: (): DBUser[] => _cache.users,
+  getUsers: (): DBUser[] => {
+    if (isBrowserClientSession() && !isBrowserAdminSession()) {
+      const activeId = typeof window !== 'undefined' ? localStorage.getItem(ACTIVE_USER_KEY) : null;
+      if (!activeId) return [];
+      return _cache.users.filter((u) => u.id === activeId);
+    }
+    return _cache.users;
+  },
 
   setUsers: (users: DBUser[]): void => {
     // Sort so that non-admin normal users are preferred first for simulation fallback if key is empty
-    const sorted = [...users].sort((a, b) => {
+    let sorted = [...users].sort((a, b) => {
       if (a.role === 'Master' && b.role !== 'Master') return 1;
       if (b.role === 'Master' && a.role !== 'Master') return -1;
       return 0;
     });
-    _cache.users = sorted;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('mktips_mock_users', JSON.stringify(sorted));
+    // Cliente só pode persistir a própria conta
+    if (isBrowserClientSession() && !isBrowserAdminSession()) {
+      const activeId = localStorage.getItem(ACTIVE_USER_KEY);
+      sorted = activeId ? sorted.filter((u) => u.id === activeId) : sorted.slice(0, 1);
     }
+    persistPrivateUserCache(sorted);
     // Write-through async (fire-and-forget)
     if (isSupabaseConfigured) {
       for (const user of sorted) {
@@ -579,6 +668,30 @@ export const db = {
             if (error) console.error('users upsert error:', error.message, user.email);
           });
       }
+    }
+    emitUpdate();
+  },
+
+  /** Remove usuário de verdade no Supabase (não só do cache). */
+  deleteUser: async (userId: string): Promise<void> => {
+    const target = _cache.users.find((u) => u.id === userId);
+    _cache.users = _cache.users.filter((u) => u.id !== userId);
+    if (typeof window !== 'undefined') {
+      if (isBrowserAdminSession()) {
+        localStorage.setItem('mktips_mock_users', JSON.stringify(_cache.users));
+      } else {
+        persistPrivateUserCache(_cache.users);
+      }
+      if (localStorage.getItem(ACTIVE_USER_KEY) === userId) {
+        localStorage.removeItem(ACTIVE_USER_KEY);
+      }
+    }
+    if (isSupabaseConfigured) {
+      if (target?.email) {
+        await supabase.from('user_credentials').delete().eq('email', target.email.toLowerCase());
+      }
+      const { error } = await supabase.from('users').delete().eq('id', userId);
+      if (error) console.error('users delete error:', error.message);
     }
     emitUpdate();
   },
@@ -612,7 +725,6 @@ export const db = {
     if (typeof window === 'undefined') return empty;
 
     const adminSession = localStorage.getItem('oddvault_admin_session') === 'true';
-    const userSession = localStorage.getItem('oddvault_user_session') === 'true';
     const activeId = localStorage.getItem(ACTIVE_USER_KEY);
 
     if (activeId) {
@@ -630,15 +742,7 @@ export const db = {
       }
     }
 
-    // Never auto-select Master/Admin for public/client sessions
-    if (userSession) {
-      const member = _cache.users.find((u) => u.role === 'User' || u.role === 'Tipster');
-      if (member) {
-        localStorage.setItem(ACTIVE_USER_KEY, member.id);
-        return member;
-      }
-    }
-
+    // Sem fallback para “primeiro usuário da lista” — isso vazava dados de terceiros
     return empty;
   },
 
@@ -649,51 +753,28 @@ export const db = {
     emitUpdate();
   },
 
-  setUserPassword: (email: string, password: string): void => {
+  setUserPassword: (email: string, _password?: string): void => {
     if (typeof window === 'undefined') return;
+    // Nunca persistir senha em claro no browser — só marca que a conta tem credencial server-side
     const key = 'mktips_user_credentials';
     const raw = localStorage.getItem(key);
     const map = raw ? JSON.parse(raw) : {};
-    map[email.trim().toLowerCase()] = password;
+    map[email.trim().toLowerCase()] = { hashed: true, at: Date.now() };
     localStorage.setItem(key, JSON.stringify(map));
   },
 
   loginWithCredentials: (
     email: string,
-    password: string,
+    _password: string,
   ): { ok: boolean; user?: DBUser; error?: string } => {
-    const normalized = email.trim().toLowerCase();
-    const user = _cache.users.find((u) => u.email.toLowerCase() === normalized);
-    if (!user) {
-      return { ok: false, error: 'E-mail ou senha incorretos.' };
-    }
-    // Never allow Master/Admin via public login page
-    if (['Master', 'Admin', 'Gerente'].includes(user.role)) {
-      return { ok: false, error: 'Use o painel administrativo para esta conta.' };
-    }
-    if (typeof window !== 'undefined') {
-      const raw = localStorage.getItem('mktips_user_credentials');
-      const map = raw ? JSON.parse(raw) : {};
-      const stored = map[normalized];
-      if (stored && stored !== password) {
-        return { ok: false, error: 'E-mail ou senha incorretos.' };
-      }
-      if (!stored) {
-        return { ok: false, error: 'Conta sem senha. Crie o teste grátis ou redefina pelo suporte.' };
-      }
-    }
-    return { ok: true, user };
+    // Login local desativado por segurança — use loginWithCredentialsAsync (API)
+    return { ok: false, error: 'Faça login pela API do servidor.' };
   },
 
   loginWithCredentialsAsync: async (
     email: string,
     password: string,
   ): Promise<{ ok: boolean; user?: DBUser; error?: string }> => {
-    // Prefer local credentials first (fast)
-    const local = db.loginWithCredentials(email, password);
-    if (local.ok) return local;
-
-    // Fallback: server credentials (works across devices after Free signup)
     try {
       const res = await fetch('/api/users/login', {
         method: 'POST',
@@ -703,22 +784,26 @@ export const db = {
       const data = await res.json();
       if (res.ok && data.ok && data.user) {
         const user = mapUserFromRow(data.user);
-        const withoutDup = _cache.users.filter((u) => u.id !== user.id && u.email.toLowerCase() !== user.email.toLowerCase());
-        _cache.users = [...withoutDup, user];
+        persistPrivateUserCache([user]);
         if (typeof window !== 'undefined') {
-          localStorage.setItem('mktips_mock_users', JSON.stringify(_cache.users));
-          db.setUserPassword(user.email, password);
+          db.setUserPassword(user.email);
+          // limpa senhas legadas em claro
+          try {
+            const raw = localStorage.getItem('mktips_user_credentials');
+            if (raw && typeof JSON.parse(raw)[email.trim().toLowerCase()] === 'string') {
+              db.setUserPassword(user.email);
+            }
+          } catch {
+            /* ignore */
+          }
         }
         emitUpdate();
         return { ok: true, user };
       }
-      if (data.error && data.error !== 'NO_SERVER_PASSWORD') {
-        return { ok: false, error: data.error };
-      }
+      return { ok: false, error: data.error || 'E-mail ou senha incorretos.' };
     } catch {
-      /* fall through */
+      return { ok: false, error: 'Falha de conexão no login.' };
     }
-    return local;
   },
 
   isFreeTrialExpired: (user: DBUser): boolean => {
@@ -783,7 +868,7 @@ export const db = {
     if (typeof window !== 'undefined') {
       localStorage.setItem('mktips_mock_users', JSON.stringify(_cache.users));
     }
-    db.setUserPassword(newUser.email, payload.password);
+    db.setUserPassword(newUser.email);
     emitUpdate();
     return newUser;
   },
@@ -973,17 +1058,48 @@ export const db = {
     db.setTickets(tickets);
   },
 
-  // --- Favorites (localStorage for session, write-through to Supabase) ---
-  getFavorites: (): string[] => {
+  // --- Favorites (por usuário — não compartilha entre contas no mesmo browser) ---
+  getFavorites: (userId?: string): string[] => {
     if (typeof window === 'undefined') return [];
-    const stored = localStorage.getItem('mktips_favorites');
-    return stored ? JSON.parse(stored) : [];
+    const uid = userId || localStorage.getItem(ACTIVE_USER_KEY) || '';
+    if (!uid) return [];
+    const keyed = localStorage.getItem(`mktips_favorites_${uid}`);
+    if (keyed) {
+      try {
+        return JSON.parse(keyed);
+      } catch {
+        return [];
+      }
+    }
+    // Migração one-shot da chave antiga global
+    const legacy = localStorage.getItem('mktips_favorites');
+    if (legacy) {
+      try {
+        const parsed = JSON.parse(legacy);
+        localStorage.setItem(`mktips_favorites_${uid}`, legacy);
+        localStorage.removeItem('mktips_favorites');
+        return parsed;
+      } catch {
+        return [];
+      }
+    }
+    return [];
   },
-  setFavorites: (favorites: string[]): void => {
+  setFavorites: (favorites: string[], userId?: string): void => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('mktips_favorites', JSON.stringify(favorites));
+      const uid = userId || localStorage.getItem(ACTIVE_USER_KEY) || '';
+      if (uid) {
+        localStorage.setItem(`mktips_favorites_${uid}`, JSON.stringify(favorites));
+      }
     }
     emitUpdate();
+  },
+
+  /** Tips que o cliente acompanhou (favoritou). Sem favoritos = desempenho zerado. */
+  getFollowedTips: (userId?: string): DBTip[] => {
+    const favs = new Set(db.getFavorites(userId));
+    if (favs.size === 0) return [];
+    return _cache.tips.filter((t) => favs.has(t.id));
   },
 
   // --- Bankroll Logs ---
@@ -1175,7 +1291,23 @@ export const db = {
   },
   setWallet: (userId: string, wallet: any): void => {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(`mktips_wallet_${userId}`, JSON.stringify(wallet));
+    // Anti-tamper: saldo só pode DIMINUIR no client (depósitos vêm do gateway verificado)
+    const prev = (() => {
+      try {
+        const raw = localStorage.getItem(`mktips_wallet_${userId}`);
+        return raw ? JSON.parse(raw) : { available: 0, prize: 0, totalDeposit: 0 };
+      } catch {
+        return { available: 0, prize: 0, totalDeposit: 0 };
+      }
+    })();
+    const safe = {
+      ...wallet,
+      userId,
+      available: Math.min(Number(wallet?.available) || 0, Number(prev.available) || 0),
+      prize: Math.min(Number(wallet?.prize) || 0, Number(prev.prize) || 0),
+      totalDeposit: Math.min(Number(wallet?.totalDeposit) || 0, Number(prev.totalDeposit) || 0),
+    };
+    localStorage.setItem(`mktips_wallet_${userId}`, JSON.stringify(safe));
     emitUpdate();
   },
 

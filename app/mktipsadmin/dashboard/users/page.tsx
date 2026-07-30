@@ -136,7 +136,7 @@ export default function AdminUsersPage() {
     if (confirm(`Deseja realmente remover o usuário ${targetUser.name} do sistema? Esta ação é irreversível.`)) {
       const updatedUsers = users.filter(u => u.id !== userId)
       setUsers(updatedUsers)
-      db.setUsers(updatedUsers)
+      void db.deleteUser(userId)
       setSelectedUser(null)
       db.addAuditLog('Admin Master', 'DELETE_USER', userId, targetUser.name, '')
       db.addLog('Audit', `Usuário ${targetUser.name} removido do sistema`, '189.120.45.10', 'MacBook Pro', 'Admin Master')
@@ -168,7 +168,7 @@ export default function AdminUsersPage() {
       revenueGenerated: newPlan === 'VIP Anual' ? 497.90 : 97.90,
       totalPaid: newPlan === 'VIP Anual' ? 497.90 : 97.90,
       lastPaymentDate: new Date().toISOString(),
-      bankroll: 500,
+      bankroll: 0,
       bankrollCurrency: 'R$',
       roiIndividual: 0
     }

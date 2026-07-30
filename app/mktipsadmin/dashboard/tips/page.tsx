@@ -44,6 +44,18 @@ export default function AdminTipsPage() {
       if (tip.id === tipId) {
         db.addAuditLog('Admin Master', 'RESOLVE_TIP', tip.id, tip.status, result)
         db.addLog('Audit', `Tip ${tip.match} resolvida como ${result}`, '189.120.45.10', 'MacBook Pro', 'Admin Master')
+        fetch('/api/notifications/feed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            match: tip.match,
+            market: tip.market,
+            odd: tip.odd,
+            type: 'tip_result',
+            title: `Resultado: ${result}`,
+            body: `${tip.match} · ${result}`,
+          }),
+        }).catch(() => {})
         return { ...tip, status: result }
       }
       return tip
@@ -100,6 +112,12 @@ export default function AdminTipsPage() {
     db.setTips(updated)
     db.addAuditLog('Admin Master', 'CREATE_TIP', newTip.id, '', `${match} - ${market}`)
     db.addLog('Audit', `Tip ${match} criada com sucesso para ${market}`, '189.120.45.10', 'MacBook Pro', 'Admin Master')
+
+    await fetch('/api/notifications/feed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ match, market, odd }),
+    }).catch(() => {})
 
     // Disparo WhatsApp desligado até ativar sendToWhatsApp no pipeline / CRM
 

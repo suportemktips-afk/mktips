@@ -14,7 +14,8 @@ export default function UserGamificationPage() {
     const load = () => {
       if (!db.isReady()) return
       setUser(db.getActiveUser())
-      setTips(db.getTips())
+      // XP/nível só com tips acompanhadas pelo cliente
+      setTips(db.getFollowedTips())
       setLoading(false)
     }
 
@@ -31,11 +32,11 @@ export default function UserGamificationPage() {
     )
   }
 
-  // Calculate dynamic gamification stats based on user database state
+  // Calculate dynamic gamification stats based on tips acompanhadas
   const resolvedTips = tips.filter(t => t.status === 'Green' || t.status === 'Red')
   const greenTipsCount = tips.filter(t => t.status === 'Green').length
 
-  // XP: 100 XP per resolved tip + 150 XP per Green tip
+  // XP: 100 XP per resolved tip + 150 XP per Green tip (0 se não favoritou nada)
   const xp = (resolvedTips.length * 100) + (greenTipsCount * 150)
   
   // Calculate Level based on XP (each level requires 500 XP)
@@ -71,7 +72,7 @@ export default function UserGamificationPage() {
       title: 'Banca Blindada', 
       desc: 'Alcançou um ROI individual positivo no banco.', 
       icon: Shield, 
-      unlocked: user.roiIndividual > 0 
+      unlocked: user.roiIndividual > 0 || resolvedTips.some(t => t.status === 'Green') 
     },
     { 
       title: 'Mestre da Odd', 

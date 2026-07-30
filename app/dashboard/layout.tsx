@@ -7,6 +7,7 @@ import { Bell, Search, LogOut } from 'lucide-react'
 import { db, DBUser } from '@/lib/db'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
 import { userNavFlat, userNavGroups } from '@/lib/nav-config'
+import { TipNotificationWatcher } from '@/components/tip-notification-watcher'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -43,10 +44,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       setUser({ ...activeUser, daysRemaining: daysLeft })
       // Never expose Master user list on mobile / public UI
-      setAllUsers(
-        activeUser.role === 'Master' ? db.getUsers().filter((u) => u.role !== 'Master') : [],
-      )
-      setNotifications(db.getLogs().slice(0, 5))
+      setAllUsers([])
+      // Cliente: sino só com avisos de tips (sem logs de outros usuários/admin)
+      setNotifications([])
     }
 
     const init = async () => {
@@ -55,6 +55,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         if (session !== 'true') {
           router.push('/login')
           return
+        }
+        // Remove dump antigo de todos os usuários (telefones) do browser
+        const activeId = localStorage.getItem('mktips_active_user_id')
+        try {
+          const raw = localStorage.getItem('mktips_mock_users')
+          if (raw && activeId) {
+            const list = JSON.parse(raw) as { id: string }[]
+            if (Array.isArray(list) && list.length > 1) {
+              localStorage.setItem(
+                'mktips_mock_users',
+                JSON.stringify(list.filter((u) => u.id === activeId)),
+              )
+            }
+          }
+        } catch {
+          /* ignore */
         }
       }
       await db.refresh()
@@ -229,6 +245,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       mobileBrandTitle="MK Tips"
       onLogout={handleLogout}
     >
+      <TipNotificationWatcher />
       {children}
     </DashboardShell>
   )

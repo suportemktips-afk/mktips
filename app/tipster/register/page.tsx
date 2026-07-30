@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { db, DBTipster, DBUser } from '@/lib/db'
 import { Shield, Sparkles, User, Mail, Lock, FileText, Globe, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 export default function TipsterRegisterPage() {
@@ -26,79 +25,23 @@ export default function TipsterRegisterPage() {
     setLoading(true)
 
     try {
-      const tipsterId = crypto.randomUUID()
-
-      // 1. Create DBTipster record
-      const newTipster: DBTipster = {
-        id: tipsterId,
-        name,
-        avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name)}`,
-        specialty,
-        sports: [specialty],
-        markets: ['1x2', 'Gols', 'Ambos Marcam'],
-        bio,
-        socials: { instagram, telegram },
-        status: 'Pendente',
-        verified: false,
-        badge: 'Tipster Pro',
-        color: '#10B981',
-        stats: {
-          tipsCount: 0,
-          greens: 0,
-          reds: 0,
-          voids: 0,
-          roi: 0,
-          yield: 0,
-          profit: 0,
-          avgStake: 1.5,
-          avgOdd: 1.85,
-          accuracy: 0,
-          maxGreen: 0,
-          maxRed: 0,
-          currentStreak: 0
-        }
+      const res = await fetch('/api/tipsters/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone, password, specialty, bio, instagram, telegram }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Falha no cadastro')
       }
-
-      // 2. Create DBUser record with role 'Tipster'
-      const newUser: DBUser = {
-        id: tipsterId,
-        name,
-        email,
-        phone: phone || 'Sem telefone',
-        city: 'São Paulo',
-        country: 'Brasil',
-        language: 'pt-BR',
-        plan: 'Free',
-        role: 'Tipster',
-        status: 'Pendente',
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-        lastLoginIp: '127.0.0.1',
-        device: 'Web Browser',
-        os: 'Unknown',
-        browser: 'Unknown',
-        daysRemaining: 0,
-        revenueGenerated: 0,
-        totalPaid: 0,
-        lastPaymentDate: '',
-        bankroll: 1000,
-        bankrollCurrency: 'R$',
-        roiIndividual: 0,
-        tipsterId: tipsterId
-      }
-
-      // Save to memory cache & write-through to Supabase
-      db.setTipsters([...db.getTipsters(), newTipster])
-      db.setUsers([...db.getUsers(), newUser])
-      db.addLog('Auth', `Novo tipster registrado: ${name} (Aguardando aprovação)`, '127.0.0.1', 'Web App', name)
 
       setSuccess(true)
       setTimeout(() => {
         router.push('/login')
       }, 3000)
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
-      alert('Erro ao realizar o cadastro de Tipster.')
+      alert(err?.message || 'Erro ao cadastrar tipster.')
     } finally {
       setLoading(false)
     }

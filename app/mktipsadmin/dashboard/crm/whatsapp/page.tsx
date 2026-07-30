@@ -184,11 +184,19 @@ function MessageEditor({ value, onChange }: { value: string; onChange: (v: strin
     setTimeout(() => { el.focus(); el.setSelectionRange(start + text.length, start + text.length) }, 0)
   }
 
-  const preview = value
+  const escapeHtml = (s: string) =>
+    s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+
+  const preview = escapeHtml(value)
     .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
     .replace(/_(.*?)_/g, '<em>$1</em>')
     .replace(/\n/g, '<br />')
-    .replace(/{{(\w+)}}/g, '<span class="text-emerald-400 font-mono text-xs">{{$1}}</span>')
+    .replace(/\{\{(\w+)\}\}/g, '<span class="text-emerald-400 font-mono text-xs">{{$1}}</span>')
 
   return (
     <div className="space-y-3">
@@ -903,9 +911,22 @@ export default function WhatsAppCrmPage() {
             </button>
           </div>
         </div>
-        <div className="rounded-lg border border-zinc-800 bg-zinc-950/80 p-3 text-xs text-zinc-400">
-          No PC (uma vez ou quando quiser atualizar):{' '}
-          <code className="text-emerald-400/90">node --env-file=.env.local scripts/sync-community-contacts.mjs</code>
+        <div className="rounded-lg border border-zinc-800 bg-zinc-950/80 p-3 text-xs text-zinc-400 space-y-1">
+          <p>
+            No PC (atualizar membros + detectar quem saiu):{' '}
+            <code className="text-emerald-400/90">node --env-file=.env.local scripts/sync-community-contacts.mjs</code>
+          </p>
+          <p>
+            Detecção de quem saiu (sem enviar mensagem):{' '}
+            <code className="text-emerald-400/90">node --env-file=.env.local scripts/sync-community-contacts.mjs</code>
+          </p>
+          <p>
+            Loop só detecção:{' '}
+            <code className="text-emerald-400/90">powershell -File scripts/start-leaver-detection.ps1</code>
+          </p>
+          <p className="text-zinc-550">
+            Recovery DM está desligado (`enabled: false`). Não disparar enquanto a conta estiver restrita.
+          </p>
         </div>
         <div className="relative"><Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar contato..." className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50" /></div>
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">

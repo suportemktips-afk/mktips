@@ -1,23 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { hasValidWebhookSecret } from '@/lib/auth-server'
+import { applyVerifiedPayment, markTransactionPaid } from '@/lib/payment-security'
+import { writeAuditLog } from '@/lib/audit-server'
 
-/**
- * Webhook endpoint for Velana payment gateway.
- * Called automatically by Velana when a PIX payment status changes (e.g., paid, expired, refunded).
- * 
- * Expected payload from Velana:
- * {
- *   "id": "transaction_id",
- *   "status": "paid" | "pending" | "expired" | "refunded",
- *   "amount": 5000,  // in cents
- *   "paidAt": "2026-07-16T22:00:00Z",
- *   "customer": { "email": "...", "name": "..." },
- *   ...
- * }
- */
-
-// In-memory store for confirmed transactions (in production, use a database)
-// This is shared with the status-check endpoint via a global Map
 declare global {
+  // compat com código antigo
+  // eslint-disable-next-line no-var
   var velanaConfirmedPayments: Map<string, { status: string; amount: number; paidAt: string }>
 }
 
@@ -25,39 +13,65 @@ if (!global.velanaConfirmedPayments) {
   global.velanaConfirmedPayments = new Map()
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    console.log('[Velana Webhook] Received:', JSON.stringify(body, null, 2))
+    if (!hasValidWebhookSecret(req)) {
+      return NextResponse.json({ received: false, error: 'Assinatura inválida.' }, { status: 401 })
+    }
 
+    const body = await req.json()
     const transactionId = body.id || body.transactionId || body.transaction_id
     const status = body.status || body.event || ''
-    const amount = body.amount || 0
+    const rawAmount = body.amount || 0
+    const amount = typeof rawAmount === 'number' ? (rawAmount > 1000 ? rawAmount / 100 : rawAmount) : 0
     const paidAt = body.paidAt || body.paid_at || new Date().toISOString()
+    const email = body.customer?.email || body.email || ''
+    const name = body.customer?.name || body.name || ''
+    const plan = body.plan || body.metadata?.plan || null
+    const productType = body.productType || body.metadata?.productType || 'plan'
 
     if (!transactionId) {
-      console.warn('[Velana Webhook] Missing transaction ID')
       return NextResponse.json({ received: false, error: 'Missing transaction ID' }, { status: 400 })
     }
 
-    // Store the confirmed payment
     if (status === 'paid' || status === 'approved' || status === 'completed') {
-      global.velanaConfirmedPayments.set(transactionId, {
+      markTransactionPaid({
+        transactionId: String(transactionId),
+        amount,
+        paidAt,
+        email: email ? String(email).toLowerCase() : undefined,
+      })
+      global.velanaConfirmedPayments.set(String(transactionId), {
         status: 'paid',
-        amount: typeof amount === 'number' ? amount / 100 : 0,
-        paidAt
+        amount,
+        paidAt,
       })
-      console.log(`[Velana Webhook] Payment ${transactionId} marked as PAID`)
+
+      if (email && amount > 0) {
+        const result = await applyVerifiedPayment({
+          email: String(email),
+          name: String(name || ''),
+          amount,
+          plan,
+          productType: String(productType),
+          transactionId: String(transactionId),
+        })
+        await writeAuditLog({
+          actor: 'webhook:velana',
+          action: 'PAYMENT',
+          target: String(email),
+          after: result.ok ? `paid:${amount}` : `error:${result.error}`,
+          meta: `tx=${transactionId}`,
+        })
+      }
     } else if (status === 'expired' || status === 'cancelled' || status === 'refunded') {
-      global.velanaConfirmedPayments.set(transactionId, {
-        status,
-        amount: typeof amount === 'number' ? amount / 100 : 0,
-        paidAt
+      global.velanaConfirmedPayments.set(String(transactionId), {
+        status: String(status),
+        amount,
+        paidAt,
       })
-      console.log(`[Velana Webhook] Payment ${transactionId} marked as ${status.toUpperCase()}`)
     }
 
-    // Always return 200 to acknowledge receipt
     return NextResponse.json({ received: true, transactionId, status })
   } catch (err: any) {
     console.error('[Velana Webhook] Error:', err)
@@ -65,8 +79,7 @@ export async function POST(req: Request) {
   }
 }
 
-// GET endpoint for the frontend to check if a webhook confirmation arrived
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
 
@@ -76,9 +89,12 @@ export async function GET(req: Request) {
 
   const payment = global.velanaConfirmedPayments.get(id)
   if (payment && payment.status === 'paid') {
-    // Remove from map after consumption (one-time read)
-    global.velanaConfirmedPayments.delete(id)
-    return NextResponse.json({ confirmed: true, status: 'paid', amount: payment.amount, paidAt: payment.paidAt })
+    return NextResponse.json({
+      confirmed: true,
+      status: 'paid',
+      amount: payment.amount,
+      paidAt: payment.paidAt,
+    })
   }
 
   return NextResponse.json({ confirmed: false, status: payment?.status || 'pending' })

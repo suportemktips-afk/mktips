@@ -227,15 +227,19 @@ export default function CheckoutPage() {
     const deviceIP = db.getClientIp()
 
     try {
-      // FREE TRIAL — R$ 0, 7 days, no payment gateway
+      // FREE TRIAL / R$ 0 — nunca chamar gateway (Velana exige mín. R$ 1,00)
       const isFreePlan =
         productType === 'plan' &&
         (targetId.toLowerCase() === 'free' ||
+          targetId.toLowerCase().includes('gratis') ||
+          targetId.toLowerCase().includes('gratuito') ||
           productName.toLowerCase().includes('grátis') ||
           productName.toLowerCase().includes('gratis') ||
-          basePrice === 0)
+          productName.toLowerCase().includes('teste') ||
+          basePrice === 0 ||
+          finalPrice < 1)
 
-      if (isFreePlan) {
+      if (isFreePlan || (productType === 'plan' && finalPrice < 1)) {
         if (!firstName.trim() || !email.trim() || !freePassword) {
           alert('Preencha nome, e-mail e senha para criar o teste grátis.')
           setLoadingPayment(false)
@@ -293,31 +297,35 @@ export default function CheckoutPage() {
         return
       }
 
-      // 1. Process via wallet if selected and has enough balance
-      if (paymentMethod === 'wallet' && canPayFullyWithWallet) {
-        // Debit fully from wallet
-        const updatedWallet = {
-          ...userWallet,
-          available: walletAvailable - finalPrice
-        }
-        db.setWallet(activeUser.id, updatedWallet)
-        await applyPurchaseBenefits()
-        db.addLog('Payment', `Compra de ${productName} no valor de R$ ${finalPrice.toFixed(2)} paga integralmente com saldo da Carteira.`, deviceIP, userDevice, activeUser.name)
-        
-        setPaymentSuccess(true)
+      if (finalPrice < 1) {
+        alert('Valor mínimo para pagamento é R$ 1,00.')
+        setLoadingPayment(false)
+        return
+      }
+
+      // 1. Carteira local NÃO pode liberar plano (saldo forgeável no browser)
+      if (paymentMethod === 'wallet') {
+        alert('Pagamento com carteira temporariamente indisponível por segurança. Use Pix.')
         setLoadingPayment(false)
         return
       }
 
       // 2. If Pix is chosen, communicate with Velana API
-      if (paymentMethod === 'pix' || (paymentMethod === 'wallet' && !canPayFullyWithWallet)) {
-        const amountToCharge = paymentMethod === 'wallet' ? remainingToPay : finalPrice
+      if (paymentMethod === 'pix') {
+        const amountToCharge = finalPrice
+        if (amountToCharge < 1) {
+          alert('Valor mínimo para Pix é R$ 1,00. No teste grátis use “Ativar Teste Grátis”.')
+          setLoadingPayment(false)
+          return
+        }
         
-        let apiDescription = 'Participação de Alavancagem'
+        let apiDescription = productName || 'Assinatura MK Tips'
         if (productType === 'valetudo') {
           apiDescription = 'Participação de Bolão'
         } else if (productType === 'deposit') {
-          apiDescription = 'Participação do Bolão'
+          apiDescription = 'Adicionar Saldo'
+        } else if (productType === 'challenge') {
+          apiDescription = `Desafio ${productName}`
         }
 
         const res = await fetch('/api/payment/velana', {
@@ -328,6 +336,8 @@ export default function CheckoutPage() {
             name: `${firstName} ${lastName}`,
             amount: amountToCharge,
             cpf,
+            plan: productName,
+            productType,
             description: apiDescription
           })
         })
@@ -335,6 +345,9 @@ export default function CheckoutPage() {
         if (data.success) {
           setPixCode(data.qrCode)
           setTransactionId(data.transactionId)
+          if (data.statusToken && data.transactionId) {
+            sessionStorage.setItem(`mktips_pay_token_${data.transactionId}`, data.statusToken)
+          }
           setShowPixScreen(true)
         } else {
           alert(data.error || 'Falha ao processar Pix com o gateway Velana. Tente novamente.')
@@ -343,7 +356,7 @@ export default function CheckoutPage() {
         return
       }
 
-      // 3. Credit Card payment processed via Cakto
+      // 3. Credit Card — só libera se o gateway confirmar paid
       if (paymentMethod === 'card') {
         const res = await fetch('/api/payment/cakto', {
           method: 'POST',
@@ -352,18 +365,49 @@ export default function CheckoutPage() {
             email,
             name: `${firstName} ${lastName}`,
             amount: finalPrice,
-            description: `Cartão ${productName} - MK Tips`
-          })
+            plan: productName,
+            productType,
+            description: `Cartão ${productName} - MK Tips`,
+            paymentMethod: 'credit_card',
+          }),
         })
         const data = await res.json()
-        
-        // Simulating immediate credit card authorization check
-        setTimeout(async () => {
-          await applyPurchaseBenefits()
-          db.addLog('Payment', `Compra de ${productName} no valor de R$ ${finalPrice.toFixed(2)} aprovada via Cartão de Crédito ${detectedBrand} (Final ${cardNumber.slice(-4) || '4242'}).`, deviceIP, userDevice, activeUser?.name || `${firstName} ${lastName}`.trim())
-          setPaymentSuccess(true)
+        if (!res.ok || !data.success) {
+          alert(data.error || 'Falha ao processar cartão.')
           setLoadingPayment(false)
-        }, 1500)
+          return
+        }
+        if (!data.paid || !data.transactionId) {
+          alert('Pagamento pendente no gateway. Aguarde a confirmação ou use Pix.')
+          setLoadingPayment(false)
+          return
+        }
+        setTransactionId(data.transactionId)
+        // Marca via consulta/confirm somente com tx id real
+        const confirmRes = await fetch('/api/payments/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            name: `${firstName} ${lastName}`,
+            phone,
+            cpf,
+            amount: finalPrice,
+            plan: productType === 'plan' ? productName : null,
+            productType,
+            transactionId: data.transactionId,
+          }),
+        })
+        // Se ainda não marcado paid no store, o webhook/cakto precisa marcar — tenta status
+        if (!confirmRes.ok) {
+          alert('Pagamento capturado no gateway, mas aguardando confirmação segura. Se o plano não liberar em 1 min, contate o suporte com o ID da transação.')
+          setLoadingPayment(false)
+          return
+        }
+        await applyPurchaseBenefits()
+        db.addLog('Payment', `Compra de ${productName} aprovada via Cartão. TX ${data.transactionId}`, deviceIP, userDevice, activeUser?.name || `${firstName} ${lastName}`.trim())
+        setPaymentSuccess(true)
+        setLoadingPayment(false)
       }
 
     } catch (err) {
@@ -376,7 +420,11 @@ export default function CheckoutPage() {
   const checkPixPaymentStatus = async () => {
     if (!transactionId) return false
     try {
-      const res = await fetch(`/api/payment/velana?id=${transactionId}`)
+      const token = sessionStorage.getItem(`mktips_pay_token_${transactionId}`) || ''
+      const qs = token
+        ? `/api/payment/velana?id=${transactionId}&token=${encodeURIComponent(token)}`
+        : `/api/payment/velana?id=${transactionId}`
+      const res = await fetch(qs)
       const data = await res.json()
       if (data.success && data.paid) {
         // If wallet partially used
@@ -541,9 +589,13 @@ export default function CheckoutPage() {
   const isFreeCheckout =
     productType === 'plan' &&
     (targetId.toLowerCase() === 'free' ||
+      targetId.toLowerCase().includes('gratis') ||
+      targetId.toLowerCase().includes('gratuito') ||
       productName.toLowerCase().includes('grátis') ||
       productName.toLowerCase().includes('gratis') ||
-      basePrice === 0)
+      productName.toLowerCase().includes('teste') ||
+      basePrice === 0 ||
+      finalPrice < 1)
 
   if (paymentSuccess) {
     return (

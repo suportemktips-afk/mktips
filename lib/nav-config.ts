@@ -101,6 +101,7 @@ export const adminNavFlat: NavItem[] = [
   { label: 'WhatsApp CRM', href: '/mktipsadmin/dashboard/crm/whatsapp', icon: MessageCircle },
   { label: 'Usuários', href: '/mktipsadmin/dashboard/users', icon: Users },
   { label: 'Tickets Suporte', href: '/mktipsadmin/dashboard/support', icon: LifeBuoy },
+  { label: 'Notificações', href: '/mktipsadmin/dashboard/notifications', icon: Bell },
   { label: 'Tipsters', href: '/mktipsadmin/dashboard/tipsters', icon: Award },
   { label: 'Tips Control', href: '/mktipsadmin/dashboard/tips', icon: Radio },
   { label: 'Casas de Apostas', href: '/mktipsadmin/dashboard/bookmakers', icon: Building },

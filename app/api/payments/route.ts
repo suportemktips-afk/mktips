@@ -1,12 +1,20 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { hasValidAdminSession } from '@/lib/auth-server'
 
 /**
  * Lista pagamentos confirmados (tabela payments).
  * Usado pelo dashboard admin para faturamento dia a dia.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    if (!hasValidAdminSession(req)) {
+      return NextResponse.json(
+        { ok: false, error: 'Não autorizado.', payments: [] },
+        { status: 401 },
+      )
+    }
+
     const admin = getSupabaseAdmin()
     if (!admin) {
       return NextResponse.json(
@@ -22,7 +30,6 @@ export async function GET() {
       .order('created_at', { ascending: true })
 
     if (error) {
-      // Tabela ainda não criada → fallback silencioso
       if (error.code === '42P01' || /does not exist|relation/i.test(error.message)) {
         return NextResponse.json({ ok: true, payments: [], tableMissing: true })
       }

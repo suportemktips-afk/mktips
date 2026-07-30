@@ -26,6 +26,11 @@ export default function TipsterLayout({ children }: { children: React.ReactNode 
         } else {
           router.push('/dashboard')
         }
+        return
+      }
+
+      if (activeUser.status === 'Pendente' || activeUser.status === 'Bloqueado') {
+        router.push('/tipster/register?pending=1')
       }
     }
 
@@ -42,7 +47,16 @@ export default function TipsterLayout({ children }: { children: React.ReactNode 
     )
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ step: 'logout' }),
+      })
+    } catch {
+      // ignore
+    }
     localStorage.removeItem('oddvault_user_session')
     db.clearActiveUser()
     window.location.href = '/'

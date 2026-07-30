@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { hasValidCronSecret, hasValidAdminSession } from '@/lib/auth-server'
+import { applyVerifiedPayment, getPaidTransaction } from '@/lib/payment-security'
+import { writeAuditLog } from '@/lib/audit-server'
+import { clientIp } from '@/lib/auth-server'
 
 /**
- * Confirma pagamento e atualiza faturamento do usuário no Supabase.
- * Usado após PIX/cartão aprovados para refletir no painel admin.
+ * Confirma pagamento SOMENTE se a transação já foi marcada como paid
+ * pelo webhook assinado (ou job interno com secret).
  */
 export async function POST(req: NextRequest) {
   try {
@@ -13,144 +16,76 @@ export async function POST(req: NextRequest) {
     const amount = Number(body.amount) || 0
     const plan = body.plan ? String(body.plan) : null
     const productType = String(body.productType || 'plan')
-    const transactionId = body.transactionId ? String(body.transactionId) : null
+    const transactionId = body.transactionId ? String(body.transactionId) : ''
     const phone = String(body.phone || '')
     const cpf = String(body.cpf || '')
+    const ip = clientIp(req)
 
-    if (!email || amount <= 0) {
+    if (!email || amount <= 0 || !transactionId) {
       return NextResponse.json(
-        { ok: false, error: 'E-mail e valor são obrigatórios.' },
+        { ok: false, error: 'E-mail, valor e transactionId são obrigatórios.' },
         { status: 400 },
       )
     }
 
-    const admin = getSupabaseAdmin()
-    if (!admin) {
+    const paid = getPaidTransaction(transactionId)
+    const internalOverride =
+      hasValidCronSecret(req) ||
+      (hasValidAdminSession(req) && body.forceAdminConfirm === true)
+
+    if (!paid && !internalOverride) {
       return NextResponse.json(
-        { ok: false, error: 'Banco não configurado (SUPABASE_SERVICE_ROLE_KEY).' },
-        { status: 500 },
+        { ok: false, error: 'Pagamento ainda não confirmado pelo gateway.' },
+        { status: 403 },
       )
     }
 
-    const allowedPlans = ['Free', 'Starter', 'Premium', 'VIP Anual']
-    const resolvedPlan =
-      plan && allowedPlans.includes(plan)
-        ? plan
-        : plan?.toLowerCase().includes('vip')
-          ? 'VIP Anual'
-          : plan?.toLowerCase().includes('starter')
-            ? 'Starter'
-            : plan?.toLowerCase().includes('premium')
-              ? 'Premium'
-              : null
-
-    const { data: existing, error: findErr } = await admin
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .maybeSingle()
-
-    if (findErr) {
-      return NextResponse.json({ ok: false, error: findErr.message }, { status: 500 })
+    if (internalOverride && !paid) {
+      // Admin/cron pode marcar antes de apply (suporte) — ainda exige transactionId único
+      const { markTransactionPaid } = await import('@/lib/payment-security')
+      markTransactionPaid({ transactionId, amount, email })
     }
 
-    const now = new Date().toISOString()
-    let user = existing
-
-    if (!user) {
-      const id = crypto.randomUUID()
-      const insertRow: Record<string, unknown> = {
-        id,
-        name: name || email.split('@')[0],
-        email,
-        phone,
-        cpf,
-        city: '',
-        country: 'Brasil',
-        language: 'pt-BR',
-        plan: productType === 'plan' && resolvedPlan ? resolvedPlan : 'Free',
-        role: 'User',
-        status: 'Ativo',
-        created_at: now,
-        last_login: now,
-        last_login_ip: '0.0.0.0',
-        device: 'Web App',
-        os: '',
-        browser: '',
-        days_remaining:
-          productType === 'plan' && resolvedPlan === 'VIP Anual'
-            ? 365
-            : productType === 'plan'
-              ? 30
-              : 7,
-        revenue_generated: amount,
-        total_paid: amount,
-        last_payment_date: now,
-        bankroll: 0,
-        bankroll_currency: 'R$',
-        roi_individual: 0,
-      }
-
-      const { data: created, error: createErr } = await admin
-        .from('users')
-        .insert(insertRow)
-        .select('*')
-        .single()
-
-      if (createErr) {
-        return NextResponse.json({ ok: false, error: createErr.message }, { status: 500 })
-      }
-      user = created
-    } else {
-      const patch: Record<string, unknown> = {
-        total_paid: Number(user.total_paid || 0) + amount,
-        revenue_generated: Number(user.revenue_generated || 0) + amount,
-        last_payment_date: now,
-        last_login: now,
-      }
-
-      if (productType === 'plan' && resolvedPlan) {
-        patch.plan = resolvedPlan
-        patch.days_remaining = resolvedPlan === 'VIP Anual' ? 365 : 30
-        patch.status = 'Ativo'
-      }
-
-      if (name) patch.name = name
-      if (phone) patch.phone = phone
-      if (cpf) patch.cpf = cpf
-
-      const { data: updated, error: updateErr } = await admin
-        .from('users')
-        .update(patch)
-        .eq('id', user.id)
-        .select('*')
-        .single()
-
-      if (updateErr) {
-        return NextResponse.json({ ok: false, error: updateErr.message }, { status: 500 })
-      }
-      user = updated
-    }
-
-    // Best-effort payment log table (optional — ignore if table missing)
-    const { error: payLogErr } = await admin.from('payments').insert({
-      id: crypto.randomUUID(),
-      user_id: user.id,
+    const result = await applyVerifiedPayment({
       email,
+      name,
       amount,
-      plan: resolvedPlan || productType,
-      product_type: productType,
-      transaction_id: transactionId,
-      status: 'paid',
-      created_at: now,
+      plan,
+      productType,
+      transactionId,
+      phone,
+      cpf,
     })
-    if (payLogErr) {
-      console.warn('payments log skipped:', payLogErr.message)
+
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: result.error }, { status: result.status })
     }
 
-    return NextResponse.json({ ok: true, user })
+    await writeAuditLog({
+      actor: email,
+      action: 'PAYMENT',
+      target: result.user.id,
+      after: plan || productType,
+      meta: `tx=${transactionId} amount=${amount}`,
+      ip,
+    })
+
+    if (plan) {
+      await writeAuditLog({
+        actor: email,
+        action: 'PLAN_CHANGE',
+        target: result.user.id,
+        after: String(plan),
+        ip,
+      })
+    }
+
+    return NextResponse.json({ ok: true, user: result.user })
   } catch (e: any) {
     console.error('payment confirm error:', e)
-    return NextResponse.json({ ok: false, error: e?.message || 'Erro ao confirmar pagamento.' }, { status: 500 })
+    return NextResponse.json(
+      { ok: false, error: e?.message || 'Erro ao confirmar pagamento.' },
+      { status: 500 },
+    )
   }
 }

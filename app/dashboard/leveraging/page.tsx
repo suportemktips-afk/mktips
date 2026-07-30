@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { db } from '@/lib/db'
-import { Rocket, Trophy, TrendingUp, Check, ArrowRight, ShieldCheck, Zap, Lock, RefreshCw } from 'lucide-react'
+import { Rocket, ArrowRight, Lock } from 'lucide-react'
 import { AreaChart } from '@/components/ui/charts'
 
 export default function LeveragingPage() {
@@ -12,7 +12,6 @@ export default function LeveragingPage() {
   const [purchased, setPurchased] = useState<string[]>([])
   const [stages, setStages] = useState<any[]>([])
   const [activeChallenge, setActiveChallenge] = useState<string | null>(null)
-  const [freeCount, setFreeCount] = useState(2) // Default to 2 out of 3 used
   const [user, setUser] = useState<any>(null)
   
   // Checkout modal state
@@ -52,7 +51,6 @@ export default function LeveragingPage() {
 
     setPurchased(db.getPurchasedChallenges())
     setStages(db.getChallengeStages())
-    setFreeCount(db.getFreeLeverageUsedCount())
     setUser(db.getActiveUser())
   }, [activeChallenge])
 
@@ -104,13 +102,6 @@ export default function LeveragingPage() {
     }, 2000)
   }
 
-  const handleCompleteFree = () => {
-    const nextCount = freeCount + 1
-    db.setFreeLeverageUsedCount(nextCount)
-    setFreeCount(nextCount)
-    db.addLog('System', `Usuário completou a Gestão Gratuita ${freeCount + 1}.`)
-  }
-
   const selectedChallengeData = challenges.find(c => c.id === activeChallenge)
   const activeStages = stages.filter(s => s.challengeId === activeChallenge)
 
@@ -124,8 +115,10 @@ export default function LeveragingPage() {
     { label: 'Etapa 1', value: (selectedChallengeData?.bank || 50) + (greensCount * 25) }
   ]
 
-  // If user completed all 3 free sessions
-  const isTrialLocked = freeCount >= 3
+  const hasPaidPlan = Boolean(user?.plan && user.plan !== 'Free')
+  const hasPurchasedChallenge = purchased.length > 0
+  // Cliente novo (Free) fica bloqueado até pagar plano ou um desafio
+  const isAccessLocked = !hasPaidPlan && !hasPurchasedChallenge
 
 
 
@@ -150,18 +143,25 @@ export default function LeveragingPage() {
         )}
       </div>
 
-      {isTrialLocked && purchased.length === 0 ? (
-        /* Block screen / upgrade triggers */
+      {isAccessLocked ? (
+        /* Bloqueio para cliente novo / Free até pagar */
         <Card className="border-zinc-850 bg-zinc-950/80 p-8 text-center space-y-6 max-w-2xl mx-auto border-2 border-emerald-500/20 shadow-2xl shadow-emerald-500/5">
           <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
             <Lock className="w-8 h-8" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-black text-white">🎉 Você concluiu todas as gestões gratuitas disponíveis!</h2>
+            <h2 className="text-xl font-black text-white">Desafio de Alavancagem Bloqueado</h2>
             <p className="text-xs text-zinc-400 leading-relaxed max-w-md mx-auto">
-              Agora desbloqueie o acesso completo para acompanhar todas as novas gestões, desafios exclusivos e estratégias premium.
+              Clientes novos no plano Free não têm acesso liberado. Pague um plano ativo ou um desafio para desbloquear as gestões de alavancagem.
             </p>
           </div>
+
+          <a
+            href="/dashboard/subscription"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-xl text-xs transition-colors shadow-lg shadow-emerald-500/20 cursor-pointer"
+          >
+            Fazer Upgrade do Plano
+          </a>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
             {challenges.map(chal => (
@@ -175,7 +175,7 @@ export default function LeveragingPage() {
                   onClick={() => handleBuy(chal.id)}
                   className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-black text-[10px] font-bold rounded cursor-pointer transition-colors"
                 >
-                  Desbloquear
+                  Pagar e Desbloquear
                 </button>
               </div>
             ))}
@@ -183,40 +183,6 @@ export default function LeveragingPage() {
         </Card>
       ) : !activeChallenge ? (
         <div className="space-y-6">
-          {/* Gestões Gratuitas Tracker card */}
-          {freeCount < 3 && (
-            <Card className="border-zinc-850 bg-zinc-950/45 p-4 flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="space-y-2 flex-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold text-white flex items-center gap-1.5">
-                    <Trophy className="w-4 h-4 text-emerald-500" />
-                    🎯 Gestões Gratuitas de Teste
-                  </span>
-                  <span className="text-zinc-500 font-mono">{freeCount} de 3 gestões utilizadas</span>
-                </div>
-                <div className="w-full bg-zinc-850 h-2 rounded-full overflow-hidden">
-                  <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${(freeCount / 3) * 100}%` }} />
-                </div>
-                <div className="flex gap-4 text-[10px] text-zinc-500">
-                  <span className={freeCount >= 1 ? 'text-emerald-400 font-bold' : ''}>Gestão 1 {freeCount >= 1 ? '✅' : '🔒'}</span>
-                  <span className={freeCount >= 2 ? 'text-emerald-400 font-bold' : ''}>Gestão 2 {freeCount >= 2 ? '✅' : '🔒'}</span>
-                  <span className={freeCount >= 3 ? 'text-emerald-400 font-bold' : ''}>Gestão 3 {freeCount >= 3 ? '✅' : '🔒'}</span>
-                </div>
-              </div>
-
-              {/* Action triggers */}
-              <div className="flex gap-2">
-                <button
-                  onClick={handleCompleteFree}
-                  className="px-3.5 py-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 text-zinc-300 font-semibold rounded text-xs cursor-pointer flex items-center gap-1.5 transition-colors"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Concluir Gestão {freeCount + 1}
-                </button>
-              </div>
-            </Card>
-          )}
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {challenges.map(chal => {
               const hasAccess = purchased.includes(chal.id)
@@ -244,7 +210,7 @@ export default function LeveragingPage() {
                         onClick={() => setActiveChallenge(chal.id)}
                         className="w-full py-2 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 font-semibold rounded text-xs cursor-pointer transition-colors"
                       >
-                        Acessar Desafio Unlocked
+                        Acessar Desafio
                       </button>
                     ) : (
                       <button

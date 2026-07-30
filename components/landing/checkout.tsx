@@ -149,64 +149,98 @@ export function Checkout({ initialPlan = 'Premium', onClose }: CheckoutProps) {
       try {
         const amount =
           selectedPlan === 'VIP Anual' ? 497.9 : selectedPlan === 'Premium' ? 97.9 : 49.9
-        const res = await fetch('/api/payments/confirm', {
+
+        // Gera Pix real — plano só libera após confirmação do gateway
+        const pixRes = await fetch('/api/payment/velana', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email,
             name,
-            phone,
             cpf,
             amount,
             plan: selectedPlan,
             productType: 'plan',
+            description: `Plano ${selectedPlan} - MK Tips`,
           }),
         })
-        const data = await res.json()
-        if (!res.ok || !data.ok || !data.user) {
-          throw new Error(data.error || 'Falha ao registrar pagamento')
+        const pixData = await pixRes.json()
+        if (!pixRes.ok || !pixData.success || !pixData.transactionId) {
+          throw new Error(pixData.error || 'Falha ao gerar Pix')
         }
 
-        const synced = data.user
-        const newUser: DBUser = {
-          id: synced.id,
-          name: synced.name || name,
-          email: synced.email || email,
-          phone: synced.phone || phone,
-          cpf: synced.cpf || cpf,
-          city: synced.city || 'São Paulo',
-          country: synced.country || 'Brasil',
-          language: synced.language || 'pt-BR',
-          plan: synced.plan || selectedPlan,
-          role: 'User',
-          status: 'Ativo',
-          createdAt: synced.created_at || new Date().toISOString(),
-          lastLogin: synced.last_login || new Date().toISOString(),
-          lastLoginIp: synced.last_login_ip || '127.0.0.1',
-          device: synced.device || 'Web App',
-          os: synced.os || '',
-          browser: synced.browser || '',
-          daysRemaining: Number(synced.days_remaining) || (selectedPlan === 'VIP Anual' ? 365 : 30),
-          revenueGenerated: Number(synced.revenue_generated) || amount,
-          totalPaid: Number(synced.total_paid) || amount,
-          lastPaymentDate: synced.last_payment_date || new Date().toISOString(),
-          bankroll: Number(synced.bankroll) || 0,
-          bankrollCurrency: synced.bankroll_currency || 'R$',
-          roiIndividual: Number(synced.roi_individual) || 0,
+        setVelanaPixCode(pixData.qrCode || '')
+        const statusToken = encodeURIComponent(pixData.statusToken || '')
+
+        const maxAttempts = 60
+        for (let i = 0; i < maxAttempts; i++) {
+          await new Promise((r) => setTimeout(r, 5000))
+          const statusRes = await fetch(
+            `/api/payment/velana?id=${pixData.transactionId}&token=${statusToken}`,
+          )
+          const statusData = await statusRes.json()
+          if (!(statusData.success && statusData.paid)) continue
+
+          const res = await fetch('/api/payments/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email,
+              name,
+              phone,
+              cpf,
+              amount,
+              plan: selectedPlan,
+              productType: 'plan',
+              transactionId: pixData.transactionId,
+            }),
+          })
+          const data = await res.json()
+          if (!res.ok || !data.ok || !data.user) {
+            throw new Error(data.error || 'Falha ao registrar pagamento')
+          }
+
+          const synced = data.user
+          const newUser: DBUser = {
+            id: synced.id,
+            name: synced.name || name,
+            email: synced.email || email,
+            phone: synced.phone || phone,
+            cpf: synced.cpf || cpf,
+            city: synced.city || 'São Paulo',
+            country: synced.country || 'Brasil',
+            language: synced.language || 'pt-BR',
+            plan: synced.plan || selectedPlan,
+            role: 'User',
+            status: 'Ativo',
+            createdAt: synced.created_at || new Date().toISOString(),
+            lastLogin: synced.last_login || new Date().toISOString(),
+            lastLoginIp: synced.last_login_ip || '127.0.0.1',
+            device: synced.device || 'Web App',
+            os: synced.os || '',
+            browser: synced.browser || '',
+            daysRemaining: Number(synced.days_remaining) || (selectedPlan === 'VIP Anual' ? 365 : 30),
+            revenueGenerated: Number(synced.revenue_generated) || amount,
+            totalPaid: Number(synced.total_paid) || amount,
+            lastPaymentDate: synced.last_payment_date || new Date().toISOString(),
+            bankroll: Number(synced.bankroll) || 0,
+            bankrollCurrency: synced.bankroll_currency || 'R$',
+            roiIndividual: Number(synced.roi_individual) || 0,
+          }
+
+          const users = db.getUsers()
+          const filtered = users.filter((u) => u.email.toLowerCase() !== email.toLowerCase() && u.id !== newUser.id)
+          db.setUsers([newUser, ...filtered])
+          db.setActiveUser(newUser.id)
+          localStorage.setItem('oddvault_user_session', 'true')
+          localStorage.setItem('oddvault_pwa_show_after_login', '1')
+          db.attributePendingReferral({ id: newUser.id, name: newUser.name, plan: String(newUser.plan) })
+          db.addLog('Payment', `Pagamento Pix confirmado para plano ${selectedPlan} (${email})`)
+          setStep(4)
+          return
         }
 
-        const users = db.getUsers()
-        const filtered = users.filter((u) => u.email.toLowerCase() !== email.toLowerCase() && u.id !== newUser.id)
-        db.setUsers([newUser, ...filtered])
-        db.setActiveUser(newUser.id)
-        localStorage.setItem('oddvault_user_session', 'true')
-        localStorage.setItem('oddvault_pwa_show_after_login', '1')
-        db.attributePendingReferral({ id: newUser.id, name: newUser.name, plan: String(newUser.plan) })
-        db.addLog(
-          'Payment',
-          `Pagamento aprovado via ${paymentMethod.toUpperCase()} para plano ${selectedPlan} (${email})`,
-        )
-        setStep(4)
+        throw new Error('Pagamento não detectado a tempo. Se já pagou, aguarde e entre pelo login.')
       } catch (err: any) {
         alert(err?.message || 'Erro ao confirmar pagamento.')
       } finally {

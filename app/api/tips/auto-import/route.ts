@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { appendTipAnnouncement } from '@/lib/notifications-feed'
 import { randomUUID } from 'crypto'
 
 const DEFAULT_LEAGUES = [
@@ -23,7 +24,10 @@ export async function POST(req: NextRequest) {
       req.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
       ''
 
-    if (secret && provided !== secret) {
+    // Fail-closed: secret obrigatório. Admin autenticado também pode disparar.
+    const { hasValidAdminSession } = await import('@/lib/auth-server')
+    const adminOk = hasValidAdminSession(req)
+    if ((!secret || provided !== secret) && !adminOk) {
       return NextResponse.json({ ok: false, error: 'Não autorizado.' }, { status: 401 })
     }
 
@@ -33,11 +37,17 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}))
-    const leagues: IncomingLeague[] = Array.isArray(body.leagues) ? body.leagues : DEFAULT_LEAGUES
+    const allowedIds = new Set(DEFAULT_LEAGUES.map((l) => l.id))
+    const rawLeagues: IncomingLeague[] = Array.isArray(body.leagues) ? body.leagues : DEFAULT_LEAGUES
+    const leagues: IncomingLeague[] = rawLeagues.filter((l) => allowedIds.has(String(l?.id || '')))
+    if (leagues.length === 0) {
+      return NextResponse.json({ ok: false, error: 'Nenhuma liga permitida.' }, { status: 400 })
+    }
     const maxTips = Math.min(Number(body.maxTips) || 8, 20)
     const bookmaker = String(body.bookmaker || 'Betano')
     const defaultOdd = Number(body.defaultOdd) || 1.85
     const broadcast = Boolean(body.broadcast)
+    const notifyClients = Boolean(body.notifyClients)
 
     const events: any[] = []
     for (const league of leagues) {
@@ -118,6 +128,22 @@ export async function POST(req: NextRequest) {
     const { data, error } = await admin.from('tips').insert(tipsToInsert).select('id, match, datetime, league, market, type, odd, status')
     if (error) {
       return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
+    }
+
+    if (notifyClients) {
+      for (const t of data) {
+        try {
+          await appendTipAnnouncement(admin, {
+            title: 'Nova tip MK Tips',
+            body: `${t.match} · ${t.market || 'Resultado'} · Odd ${Number(t.odd).toFixed(2)}`,
+            match: String(t.match),
+            market: String(t.market || ''),
+            odd: Number(t.odd) || undefined,
+          })
+        } catch {
+          /* feed optional */
+        }
+      }
     }
 
     // Best-effort: enfileira broadcast (worker local / wacli consome)
