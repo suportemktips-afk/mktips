@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ADMIN_COOKIE, USER_COOKIE, verifySignedTokenEdge } from '@/lib/auth-edge'
+import { ADMIN_COOKIE, USER_COOKIE, verifySignedTokenEdge } from './lib/auth-edge'
 
 function cronOk(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET || process.env.AUTO_IMPORT_SECRET || ''

@@ -1,65 +1,87 @@
 'use client'
 
 import React from 'react'
-import { UserPlus, CreditCard, Rocket, CheckCircle, Bell, TrendingUp, Award, Wallet } from 'lucide-react'
+import {
+  UserPlus,
+  LogIn,
+  Zap,
+  Scale,
+  BarChart3,
+  Wallet,
+} from 'lucide-react'
 
 const stepsList = [
-  { icon: UserPlus, title: 'Criar conta', desc: 'Preencha seus dados básicos de cadastro.' },
-  { icon: CreditCard, title: 'Escolher plano', desc: 'Selecione a modalidade de assinatura.' },
-  { icon: Rocket, title: 'Pagamento', desc: 'Aprovado via PIX ou cartão em segundos.' },
-  { icon: CheckCircle, title: 'Acesso liberado', desc: 'Seu usuário é ativado instantaneamente.' },
-  { icon: Bell, title: 'Receber Tips', desc: 'Acompanhe as análises no painel ou por push.' },
-  { icon: TrendingUp, title: 'Comparar Odds', desc: 'Comparamos e indicamos a melhor cotação.' },
-  { icon: Award, title: 'Acompanhar resultados', desc: 'Todos os greens e reds são auditados.' },
-  { icon: Wallet, title: 'Controlar banca', desc: 'Gerencie seu caixa e ROI automaticamente.' }
+  {
+    icon: UserPlus,
+    title: 'Crie sua conta',
+    desc: 'Cadastro rápido com seus dados básicos para liberar o acesso à plataforma.',
+  },
+  {
+    icon: LogIn,
+    title: 'Acesse a plataforma',
+    desc: 'Entre no painel e configure seu perfil operacional em poucos minutos.',
+  },
+  {
+    icon: Zap,
+    title: 'Receba as oportunidades',
+    desc: 'Tips organizadas com contexto, odd sugerida e horário de entrada.',
+  },
+  {
+    icon: Scale,
+    title: 'Compare as odds',
+    desc: 'Veja em segundos qual casa oferece a melhor cotação no momento.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Acompanhe os resultados',
+    desc: 'Histórico completo de greens e reds, sem edições ou cortes.',
+  },
+  {
+    icon: Wallet,
+    title: 'Controle sua banca',
+    desc: 'Monitore ROI, yield e evolução do capital em um único lugar.',
+  },
 ]
 
 export function HowItWorks() {
   return (
-    <section id="como-funciona" className="relative py-24 sm:py-32 bg-black overflow-hidden border-b border-zinc-900/40">
+    <section id="como-funciona" className="relative overflow-hidden border-b border-zinc-900/40 bg-black py-20 sm:py-28">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
-        {/* Title */}
-        <div className="mx-auto max-w-3xl text-center space-y-3 mb-16">
-          <span className="text-xs font-extrabold text-[#00E08A] uppercase tracking-widest bg-[#00E08A]/10 border border-[#00E08A]/20 px-3 py-1 rounded-full">
-            Fluxo Completo
-          </span>
-          <h2 className="text-balance text-3xl sm:text-4xl font-black text-white tracking-tight leading-none">
-            Como funciona a MK Tips
+        <div className="mx-auto mb-14 max-w-2xl text-center">
+          <h2 className="text-balance text-3xl font-black tracking-tight text-white sm:text-4xl">
+            Do cadastro ao controle da banca
           </h2>
-          <p className="text-zinc-400 text-sm sm:text-base leading-relaxed max-w-xl mx-auto">
-            Acompanhe o caminho operacional completo de nossos membros, do cadastro à gestão do caixa.
+          <p className="mt-3 text-sm leading-relaxed text-zinc-400 sm:text-base">
+            Um fluxo simples para organizar sua rotina no mercado esportivo.
           </p>
         </div>
 
-        {/* 8 Step Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {stepsList.map((step, idx) => {
             const Icon = step.icon
             return (
               <div
-                key={idx}
-                className="group relative flex flex-col items-center text-center p-5 rounded-2xl border border-zinc-900 bg-zinc-950/40 hover:border-[#00E08A]/20 hover:bg-zinc-950/80 transition-all duration-300"
+                key={step.title}
+                className="group relative flex flex-col gap-4 rounded-2xl border border-zinc-900 bg-zinc-950/50 p-6 transition-all duration-300 hover:border-[#00E08A]/25 hover:bg-zinc-950/80"
               >
-                {/* Connector line for large screen */}
-                {idx < 7 && (
-                  <div className="hidden lg:block absolute top-9 left-[75%] w-[50%] h-[1px] bg-gradient-to-r from-emerald-500/10 via-[#00E08A]/25 to-emerald-500/10 z-0 pointer-events-none" />
-                )}
-
-                <div className="relative z-10 w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-850 flex items-center justify-center text-[#00E08A] transition-colors group-hover:bg-[#00E08A] group-hover:text-black">
-                  <Icon className="w-5 h-5" />
-                  <span className="absolute -top-2 -right-2 bg-zinc-950 border border-zinc-850 w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black font-mono text-zinc-550">
-                    0{idx + 1}
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#00E08A] text-sm font-black text-[#00E08A]">
+                    {idx + 1}
+                  </span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-[#00E08A] transition-colors group-hover:border-[#00E08A]/40 group-hover:bg-[#00E08A]/10">
+                    <Icon className="h-4 w-4" />
                   </span>
                 </div>
-                
-                <h3 className="mt-4 font-bold text-white text-xs sm:text-sm">{step.title}</h3>
-                <p className="mt-1.5 text-zinc-500 text-[10px] sm:text-[11px] leading-relaxed max-w-xs">{step.desc}</p>
+                <div>
+                  <h3 className="text-sm font-bold text-white sm:text-base">{step.title}</h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-zinc-500 sm:text-[13px]">
+                    {step.desc}
+                  </p>
+                </div>
               </div>
             )
           })}
         </div>
-
       </div>
     </section>
   )
